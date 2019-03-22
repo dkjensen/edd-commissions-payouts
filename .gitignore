@@ -1,3 +1,5 @@
+composer.lock
+
 # Windows image file caches
 Thumbs.db
 ehthumbs.db
@@ -15,3 +17,6 @@ vendor
 
 # Temporary files
 *~
+
+# WP Unit tests
+bin
