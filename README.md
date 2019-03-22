@@ -1,2 +1,2 @@
-# edd-paypal-payouts
-Easy Digital Downloads PayPal Payouts API integration for FES and Commissions
+# Easy Digital Downloads - Commissions Payouts
+Easy Digital Downloads Payouts integration for FES and Commissions

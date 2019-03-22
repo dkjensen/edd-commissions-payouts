@@ -1,0 +1,17 @@
+# Windows image file caches
+Thumbs.db
+ehthumbs.db
+
+# Mac
+.DS_Store
+
+# Grunt
+node_modules
+build/
+tmp/
+
+# Vendor
+vendor
+
+# Temporary files
+*~

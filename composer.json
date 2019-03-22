@@ -1,0 +1,38 @@
+{
+    "name": "dkjensen/edd-commissions-payouts",
+    "type": "wordpress-plugin",
+    "require": {
+        "paypal/rest-api-sdk-php": "^1.14",
+        "composer/installers": "1.6.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "6.5.14"
+    },
+    "authors": [
+        {
+            "name": "David Jensen",
+            "email": "david@dkjensen.com"
+        }
+    ],
+    "scripts": {
+        "test": [
+          "phpunit"
+        ],
+        "phpcs": [
+          "phpcs -s -p"
+        ],
+        "phpcs-pre-commit": [
+          "phpcs -s -p -n"
+        ],
+        "phpcbf": [
+          "phpcbf -p"
+        ]
+    },
+    "extra": {
+        "scripts-description": {
+          "test": "Run unit tests",
+          "phpcs": "Analyze code against the WordPress coding standards with PHP_CodeSniffer",
+          "phpcbf": "Fix coding standards warnings/errors automatically with PHP Code Beautifier"
+        }
+    }
+}
