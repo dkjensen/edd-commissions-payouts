@@ -20,3 +20,4 @@ vendor
 
 # WP Unit tests
 bin
+coverage

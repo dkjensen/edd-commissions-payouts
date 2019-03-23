@@ -25,6 +25,8 @@ define( 'EDD_COMMISSIONS_PAYOUTS_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 if ( ! file_exists( EDD_COMMISSIONS_PAYOUTS_PLUGIN_DIR . 'vendor/autoload.php' ) ) {
     /**
      * Display admin notice if Composer packages not installed
+     * 
+     * @codeCoverageIgnore
      */
     add_action( 'admin_notices', function() {
         ?>
@@ -40,6 +42,11 @@ if ( ! file_exists( EDD_COMMISSIONS_PAYOUTS_PLUGIN_DIR . 'vendor/autoload.php' )
 }
 
 if ( ! class_exists( 'Easy_Digital_Downloads' ) || version_compare( EDD_VERSION, '2.4', '<' ) ) {
+    /**
+     * Display admin notice if not up to date with EDD version
+     * 
+     * @codeCoverageIgnore
+     */
     add_action( 'admin_notices', function() {
         ?>
         
@@ -54,6 +61,11 @@ if ( ! class_exists( 'Easy_Digital_Downloads' ) || version_compare( EDD_VERSION,
 }
 
 if ( version_compare( $wp_version, '4.2', '<' ) ) {
+    /**
+     * Display admin notice if not up to date with WP version
+     * 
+     * @codeCoverageIgnore
+     */
     add_action( 'admin_notices', function() {
         ?>
         

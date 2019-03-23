@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit
+	bootstrap="tests/bootstrap.php"
+	backupGlobals="false"
+	colors="true"
+	convertErrorsToExceptions="true"
+	convertNoticesToExceptions="true"
+	convertWarningsToExceptions="true"
+	verbose="true"
+	syntaxCheck="true"
+	>
+	<testsuites>
+		<testsuite name="EDD Commissions Payouts Test Suite">
+			<directory suffix=".php">./tests</directory>
+		</testsuite>
+	</testsuites>
+	<filter>
+		<whitelist addUncoveredFilesFromWhitelist="true">
+			<directory suffix=".php">./includes</directory>
+			<file>edd-commissions-payouts.php</file>
+		</whitelist>
+	</filter>
+</phpunit>

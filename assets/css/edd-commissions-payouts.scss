@@ -1,3 +1,33 @@
 .edd_payout_method input[type="checkbox"] {
     display: none; 
 }
+
+
+.edd_commissions_payouts_alert {
+    &.loading {
+        .sa-icon.sa-custom {
+            display: inline-block !important;
+
+            &:after {
+                content: " ";
+                display: block;
+                width: 70px;
+                height: 70px;
+                margin: 1px;
+                border-radius: 50%;
+                border: 5px solid rgba( 0, 0, 0, .25 );
+                border-color: rgba( 0, 0, 0, .25 ) transparent rgba( 0, 0, 0, .25 ) transparent;
+                animation: lds-dual-ring 1.2s linear infinite;
+            }
+
+            @keyframes lds-dual-ring {
+                0% {
+                  transform: rotate(0deg);
+                }
+                100% {
+                  transform: rotate(360deg);
+                }
+            }
+        }
+    }
+}

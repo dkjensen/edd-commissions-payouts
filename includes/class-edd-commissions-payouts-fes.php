@@ -15,7 +15,9 @@ class EDD_Commissions_Payouts_FES {
     public function __construct() {
         add_filter( 'fes_template_paths', array( $this, 'template_paths' ) );
         add_action( 'eddc_before_commissions_overview', array( $this, 'frontend_payout_methods' ) );
-        add_action( 'wp_loaded', array( $this, 'user_enable_payout_method' ) );
+        add_action( 'wp_loaded', array( $this, 'user_process_payout_method' ) );
+        add_action( 'wp_ajax_edd_user_process_payout_method', array( $this, 'user_process_payout_method' ) );
+        add_action( 'edd_dashboard_earnings_before_payout_methods', array( $this, 'payout_method_notices' ) );
     }
 
 
@@ -42,10 +44,15 @@ class EDD_Commissions_Payouts_FES {
         return $file_paths;
     }
 
-    public function user_enable_payout_method() {
+
+    public function user_process_payout_method() {
         if ( isset( $_REQUEST['edd_enable_payout_method'] ) ) {
             try {
                 $payout_method = $_REQUEST['edd_enable_payout_method'];
+
+                if( ! wp_verify_nonce( $_REQUEST['_wpnonce'], 'enable_payout_method' ) ) {
+                    throw new Exception( __( 'Invalid nonce, please try again.', 'edd-commissions-payouts' ) );
+                }
 
                 if ( ! is_user_logged_in() ) {
                     throw new Exception( __( 'You must be logged in to do that.', 'edd-commissions-payouts' ) );
@@ -55,11 +62,31 @@ class EDD_Commissions_Payouts_FES {
                     throw new Exception( __( 'You must be an approved vendor to do that.', 'edd-commissions-payouts' ) );
                 }
 
-                $added = EDD_Commissions_Payouts()->helper->add_user_payout_method( $payout_method );
+                // Returns object instance of EDD_Commissions_Payouts_Method
+                $response = EDD_Commissions_Payouts()->helper->add_user_payout_method( $payout_method );
+
+                // AJAX response
+                if ( defined( 'DOING_AJAX' ) && DOING_AJAX ) {
+                    wp_send_json( array(
+                        'type'          => 'success',
+                        'message'       => __( 'Success', 'edd-commissions-payouts' ),
+                        'redirect'      => $response->get_redirect_uri()
+                    ) );
+                }
             }catch( Exception $e ) {
-                wp_die( $e->getMessage() );
+                if ( defined( 'DOING_AJAX' ) && DOING_AJAX ) {
+                    wp_send_json( array(
+                        'type'          => 'error',
+                        'message'       => $e->getMessage() 
+                    ) );
+                }
             }
         }
+    }
+
+
+    public function payout_method_notices() {
+
     }
 
 }

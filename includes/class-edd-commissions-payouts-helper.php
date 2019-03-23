@@ -124,7 +124,14 @@ class EDD_Commissions_Payouts_Helper {
     }
 
 
-    public function add_user_payout_method( $method, $user_id = false ) {
+    /**
+     * Attempts to enable the payout method of a given user
+     *
+     * @param string $method
+     * @param integer $user_id
+     * @return object Payout method object, instance of EDD_Commissions_Payouts_Method
+     */
+    public function add_user_payout_method( $method, $user_id = 0 ) {
         if ( ! $user_id ) {
             $user_id = get_current_user_id();
         }
@@ -140,16 +147,13 @@ class EDD_Commissions_Payouts_Helper {
 
                 update_user_meta( $user_id, 'edd_enabled_payout_methods', array_merge( $enabled_methods, array( $method ) ) );
 
-                wp_safe_redirect( $method_object->get_redirect_uri() );
-                exit;
+                return $method_object;
             }else {
                 throw new Exception( sprintf( __( 'Payout method %s is already enabled.', 'edd-commissions-payouts' ), esc_html( $method ) ) );
             }
         }else {
             throw new Exception( sprintf( __( 'Payout method %s does not exist.', 'edd-commissions-payouts' ), esc_html( $method ) ) );
         }
-
-        return true;
     }
 
 }
