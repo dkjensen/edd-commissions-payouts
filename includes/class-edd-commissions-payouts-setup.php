@@ -29,7 +29,7 @@ class EDD_Commissions_Payouts_Setup {
         wp_register_script( 'edd-commissions-payouts', EDD_COMMISSIONS_PAYOUTS_PLUGIN_URL . 'assets/js/edd-commissions-payouts' . $suffix . '.js', array( 'jquery', 'fes_form', 'fes_sw', 'fes_spin', 'fes_spinner' ), EDD_COMMISSIONS_PAYOUTS_VER, true );
     
         wp_localize_script( 'edd-commissions-payouts', 'eddcp_obj', array(
-            'user_process_payout_method_nonce'        => wp_create_nonce( 'enable_payout_method' ),
+            'user_payout_method_nonce'                => wp_create_nonce( 'process_payout_method' ),
             'strings'                                 => array(
                 'error'                               => __( 'Error', 'edd-commissions-payouts' ),
                 'success'                             => __( 'Success', 'edd-commissions-payouts' ),

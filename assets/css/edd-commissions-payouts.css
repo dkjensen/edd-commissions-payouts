@@ -1,5 +1,17 @@
-.edd_payout_method input[type="checkbox"] {
-  display: none; }
+#edd_user_payout_methods {
+  margin: 0 0 1.5em; }
+
+.edd_payout_method_icon {
+  height: 30px;
+  width: 120px; }
+  .edd_payout_method_icon img {
+    max-height: 100%; }
+
+.edd_payout_methods td:first-child {
+  text-align: center; }
+
+.edd_payout_methods td {
+  text-align: right; }
 
 .edd_commissions_payouts_alert.loading .sa-icon.sa-custom {
   display: inline-block !important; }

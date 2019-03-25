@@ -59,7 +59,7 @@ abstract class EDD_Commissions_Payouts_Method {
      * @return string
      */
     public function get_name() {
-        return apply_filters( 'edd_commissions_payout_method_name', $this->name, $this->id );
+        return apply_filters( 'edd_commissions_payout_method_name', $this->name, $this );
     }
 
 
@@ -69,21 +69,44 @@ abstract class EDD_Commissions_Payouts_Method {
      * @return string
      */
     public function get_icon() {
-        $icon = apply_filters( 'edd_commissions_payout_method_icon', $this->icon, $this->id );
+        $icon = apply_filters( 'edd_commissions_payout_method_icon', $this->icon, $this );
 
         return $icon ? sprintf( '<img src="%s" alt="%s" />', esc_attr( $icon ), esc_attr( $this->get_name() ) ) : '';
     }
 
 
     /**
-     * Returns the url endpoint to activate/enable the payout method
+     * Returns the url endpoint to toggle the enabled status of the payout method
      *
      * @return string
      */
-    public function get_enable_uri() {
-        $enable_uri = $this->enable_uri ? wp_nonce_url( add_query_arg( array( 'edd_enable_payout_method' => $this->get_id() ), esc_url( $this->enable_uri ) ), 'enable_payout_method' ) : '';
+    public function get_toggle_status_uri() {
+        $enabled_methods  = EDD_Commissions_Payouts()->helper->get_user_enabled_payout_methods();
 
-        return apply_filters( 'edd_commissions_payout_method_enable_uri', $enable_uri, $this->id );
+        $payout_method_uri = EDD_Commissions_Payouts()->helper->get_payout_methods_dashboard_uri();
+        $toggle_status_uri = wp_nonce_url( add_query_arg( array( 
+            'edd_payout_method' => $this->get_id(),
+            'edd_payout_action' => ! in_array( $this->get_id(), $enabled_methods ) ? 'enable' : 'remove',
+            'edd_action'        => 'toggle_payout_method'
+        ), $payout_method_uri ), 'process_payout_method' );
+
+        return apply_filters( 'edd_commissions_payout_method_toggle_status_uri', $toggle_status_uri, $this );
+    }
+
+
+    /**
+     * Returns the url endpoint to set the preferred payout method
+     *
+     * @return string
+     */
+    public function get_set_as_preferred_uri() {
+        $payout_method_uri = EDD_Commissions_Payouts()->helper->get_payout_methods_dashboard_uri();
+        $set_as_preferred_uri = wp_nonce_url( add_query_arg( array( 
+            'edd_payout_method' => $this->get_id(),
+            'edd_action'        => 'preferred_payout_method'
+        ), $payout_method_uri ), 'process_payout_method' );
+    
+        return apply_filters( 'edd_commissions_payout_method_set_as_preferred_uri', $set_as_preferred_uri, $this );
     }
 
 
@@ -95,7 +118,30 @@ abstract class EDD_Commissions_Payouts_Method {
     public function get_redirect_uri() {
         $redirect_uri = $this->redirect_uri ? esc_url( $this->redirect_uri ) : '';
 
-        return apply_filters( 'edd_commissions_payout_method_redirect_uri', $redirect_uri, $this->id );
+        return apply_filters( 'edd_commissions_payout_method_redirect_uri', $redirect_uri, $this );
     }
 
+
+    /**
+     * Returns the message displayed to the user after enabling the payout method
+     *
+     * @return string
+     */
+    public function enabled_message() {
+        $message = sprintf( __( '%s payout method has been enabled successfully.', 'edd-commissions-payout' ) );
+
+        return apply_filters( 'edd_commissions_payout_method_enabled_message', $message, $this );
+    }
+
+
+    /**
+     * Returns the message displayed to the user after removing the payout method
+     *
+     * @return string
+     */
+    public function removed_message() {
+        $message = sprintf( __( '%s payout method has been removed successfully.', 'edd-commissions-payout' ) );
+
+        return apply_filters( 'edd_commissions_payout_method_removed_message', $message, $this );
+    }
 }

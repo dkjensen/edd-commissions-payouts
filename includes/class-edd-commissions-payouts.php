@@ -82,6 +82,7 @@ class EDD_Commissions_Payouts {
 
         require EDD_COMMISSIONS_PAYOUTS_PLUGIN_DIR . 'includes/abstracts/class-edd-commissions-payouts-method.php';
         require EDD_COMMISSIONS_PAYOUTS_PLUGIN_DIR . 'includes/methods/class-edd-commissions-payout-method-paypal.php';
+        require EDD_COMMISSIONS_PAYOUTS_PLUGIN_DIR . 'includes/methods/class-edd-commissions-payout-method-stripe.php';
     }
 
 
