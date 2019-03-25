@@ -44,6 +44,14 @@ class EDD_Commissions_Payouts {
      * @var EDD_Commissions_Payouts_Commissions
      */
     public $commissions;
+    
+    /**
+     * Form processing
+     *
+     * @var EDD_Commissions_Payouts_Form_Handler
+     */
+    public $form_handler;
+
 
     /**
      * Insures that only one instance of EDD_Commissions_Payouts exists in memory at any one time.
@@ -68,21 +76,28 @@ class EDD_Commissions_Payouts {
             self::$instance->helper         = new EDD_Commissions_Payouts_Helper;
             self::$instance->fes            = new EDD_Commissions_Payouts_FES;
             self::$instance->commissions    = new EDD_Commissions_Payouts_Commissions;
+            self::$instance->form_handler   = new EDD_Commissions_Payouts_Form_Handler;
         }
         
         return self::$instance;
     }
 
 
+    /**
+     * Include the goodies
+     *
+     * @return void
+     */
     public function includes() {
-        require EDD_COMMISSIONS_PAYOUTS_PLUGIN_DIR . 'includes/class-edd-commissions-payouts-setup.php';
-        require EDD_COMMISSIONS_PAYOUTS_PLUGIN_DIR . 'includes/class-edd-commissions-payouts-helper.php';
-        require EDD_COMMISSIONS_PAYOUTS_PLUGIN_DIR . 'includes/class-edd-commissions-payouts-fes.php';
-        require EDD_COMMISSIONS_PAYOUTS_PLUGIN_DIR . 'includes/class-edd-commissions-payouts-commissions.php';
+        require_once EDD_COMMISSIONS_PAYOUTS_PLUGIN_DIR . 'includes/class-edd-commissions-payouts-setup.php';
+        require_once EDD_COMMISSIONS_PAYOUTS_PLUGIN_DIR . 'includes/class-edd-commissions-payouts-helper.php';
+        require_once EDD_COMMISSIONS_PAYOUTS_PLUGIN_DIR . 'includes/class-edd-commissions-payouts-form-handler.php';
+        require_once EDD_COMMISSIONS_PAYOUTS_PLUGIN_DIR . 'includes/class-edd-commissions-payouts-fes.php';
+        require_once EDD_COMMISSIONS_PAYOUTS_PLUGIN_DIR . 'includes/class-edd-commissions-payouts-commissions.php';
 
-        require EDD_COMMISSIONS_PAYOUTS_PLUGIN_DIR . 'includes/abstracts/class-edd-commissions-payouts-method.php';
-        require EDD_COMMISSIONS_PAYOUTS_PLUGIN_DIR . 'includes/methods/class-edd-commissions-payout-method-paypal.php';
-        require EDD_COMMISSIONS_PAYOUTS_PLUGIN_DIR . 'includes/methods/class-edd-commissions-payout-method-stripe.php';
+        require_once EDD_COMMISSIONS_PAYOUTS_PLUGIN_DIR . 'includes/abstracts/class-edd-commissions-payouts-method.php';
+        require_once EDD_COMMISSIONS_PAYOUTS_PLUGIN_DIR . 'includes/methods/class-edd-commissions-payout-method-paypal.php';
+        require_once EDD_COMMISSIONS_PAYOUTS_PLUGIN_DIR . 'includes/methods/class-edd-commissions-payout-method-stripe.php';
     }
 
 
@@ -94,6 +109,7 @@ class EDD_Commissions_Payouts {
     public function __clone() {
         _doing_it_wrong( __FUNCTION__, __( 'Cheatin&#8217; huh?', 'edd-commissions-payouts' ), '2.3' );
     }
+
 
     /**
      * Disable unserializing of the class
