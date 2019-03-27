@@ -15,9 +15,17 @@ class EDD_Commissions_Payouts_Setup {
 
     public function __construct() {
         add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
+        add_filter( 'edd_log_types', array( $this, 'register_log_type' ) );
+        add_filter( 'edd_log_views', array( $this, 'register_log_view' ) );
+        add_action( 'edd_logs_view_payouts', array( $this, 'log_view' ) );
     }
 
 
+    /**
+     * Front end scripts
+     *
+     * @return void
+     */
     public function enqueue_scripts() {
         $suffix = defined( 'WP_DEBUG' ) && WP_DEBUG ? '' : '.min';
 
@@ -41,4 +49,52 @@ class EDD_Commissions_Payouts_Setup {
         wp_enqueue_script( 'edd-commissions-payouts' );
     }
 
+
+    /**
+     * Register the log view
+     *
+     * @param array $types
+     * @return array
+     */
+    public function register_log_type( $types ) {
+        $types[] = 'payouts';
+
+        return $types;
+    }
+
+
+    /**
+     * Register the log view label
+     *
+     * @param array $views
+     * @return array
+     */
+    public function register_log_view( $views ) {
+        $views['payouts'] = __( 'Payouts', 'edd-commissions-payouts' );
+
+        return $views;
+    }
+
+
+    /**
+     * Payouts log view
+     *
+     * @return void
+     */
+    public function log_view() {
+        $logs_table = new EDD_Commissions_Payouts_Log_Table();
+        $logs_table->prepare_items();
+        ?>
+
+        <div class="wrap">
+            <form id="edd-logs-filter" method="get" action="<?php echo admin_url( 'edit.php?post_type=download&page=edd-reports&tab=logs' ); ?>">
+                <?php $logs_table->display(); ?>
+                <input type="hidden" name="page" value="edd-reports" />
+                <input type="hidden" name="tab" value="logs" />
+            </form>
+        </div>
+    
+        <?php
+
+    }
 }

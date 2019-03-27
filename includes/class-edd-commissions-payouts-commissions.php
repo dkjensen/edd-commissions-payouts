@@ -17,15 +17,14 @@ class EDD_Commissions_Payouts_Commissions {
     }
 
     /**
-     * Registers the new Commissions options in Extensions
+     * Registers our settings in Commissions tab
      *
-     * @since       1.2.1
-     * @param       $settings array the existing plugin settings
-     * @return      array The new EDD settings array with commissions added
+     * @param array $settings array the existing plugin settings
+     * @return array The new EDD settings array with our settings added
      */
     public function settings( $settings ) {
-        $payout_methods = EDD_Commissions_Payouts()->helper->get_payout_methods();
-        $payout_methods = array_filter( array_map( array( $this, 'convert_object_to_name' ), $payout_methods ) );
+        $payout_method_objects = EDD_Commissions_Payouts()->helper->get_payout_methods();
+        $payout_methods = array_filter( array_map( array( $this, 'convert_object_to_name' ), $payout_method_objects ) );
 
         $settings[] = array(
             'id'      => 'edd_commissions_payout_methods',
@@ -33,7 +32,13 @@ class EDD_Commissions_Payouts_Commissions {
             'type'    => 'multicheck',
             'options' => $payout_methods
         );
-        
+
+        foreach ( $payout_method_objects as $payout_method ) {
+            if ( $payout_method->settings() ) {
+                $settings = array_merge( $settings, $payout_method->settings() );
+            }
+        }
+
         return $settings;
     }
 

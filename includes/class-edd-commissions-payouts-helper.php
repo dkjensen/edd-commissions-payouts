@@ -300,4 +300,27 @@ class EDD_Commissions_Payouts_Helper {
     
         return apply_filters( 'edd_commissions_payouts_dashboard_uri', esc_url( $uri ), $page_id );
     }
+
+
+    /**
+     * Add entry to EDD Payouts log
+     *
+     * @param string $message
+     * @param string $type
+     * @param string $details
+     * @param string $payout_method
+     * @return void
+     */
+    public function log( $message = '', $type = 'notice', $details = '', $payout_method = '' ) {
+        $edd_log = new EDD_Logging();
+
+        $log_meta = array(
+            'type'              => $type,
+            'message'           => $message,
+            'details'           => is_array( $details ) ? json_encode( $details ) : $details,
+            'payout_method'     => $payout_method
+        );
+
+        $log_entry = $edd_log->insert_log( array( 'log_type' => 'payouts' ), $log_meta );
+    }
 }

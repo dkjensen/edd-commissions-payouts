@@ -48,6 +48,32 @@ abstract class EDD_Commissions_Payouts_Method {
     public $redirect_uri = '';
 
 
+    /**
+     * Does this payout method require authentication
+     *
+     * @var boolean
+     */
+    public $authentication = false;
+
+
+    public function __construct() {
+        $this->setup();
+    }
+
+
+    /**
+     * Extending class will setup variables using this function
+     *
+     * @return void
+     */
+    abstract protected function setup();
+
+
+    /**
+     * Returns the unique identifier for the payout method
+     *
+     * @return void
+     */
     public function get_id() {
         return $this->id;
     }
@@ -143,5 +169,49 @@ abstract class EDD_Commissions_Payouts_Method {
         $message = sprintf( __( '%s payout method has been removed successfully.', 'edd-commissions-payout' ) );
 
         return apply_filters( 'edd_commissions_payout_method_removed_message', $message, $this );
+    }
+
+
+    /**
+     * Returns whether this payout method requires authentication
+     *
+     * @return bool
+     */
+    public function requires_authentication() {
+        return (bool) $this->authentication;
+    }
+
+
+    /**
+     * Renders admin settings
+     *
+     * @return string
+     */
+    public function settings() {
+        return array();
+    }
+
+
+    /**
+     * Logs a notice to the EDD Payouts log
+     *
+     * @param string $message
+     * @param string $details
+     * @return void
+     */
+    public function log_notice( $message, $details ) {
+        EDD_Commissions_Payouts()->helper->log( $message, 'Notice', $details, $this->get_id() );
+    }
+
+
+    /**
+     * Logs an error to the EDD Payouts log
+     *
+     * @param string $message
+     * @param string $details
+     * @return void
+     */
+    public function log_error( $message, $details ) {
+        EDD_Commissions_Payouts()->helper->log( $message, 'Error', $details, $this->get_id() );
     }
 }
