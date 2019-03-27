@@ -21,3 +21,4 @@ vendor
 # WP Unit tests
 bin
 coverage
+phpunit.xml
