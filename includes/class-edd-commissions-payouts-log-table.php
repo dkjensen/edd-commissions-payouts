@@ -88,11 +88,11 @@ class EDD_Commissions_Payouts_Log_Table extends WP_List_Table {
 	 * @return void
 	 */
 	public function column_details( $item ) {
-        $details = is_array( $item['details'] ) ? json_encode( $item['details'] ) : $item['details'];
+        $details = get_post_meta( $item['id'], '_edd_log_details', true );
         ?>
             <a href="#TB_inline?width=640&amp;inlineId=log-details-<?php echo $item['id']; ?>" class="thickbox"><?php _e( 'View Details', 'edd-commissions-payouts' ); ?></a>
             <div id="log-details-<?php echo $item['id']; ?>" style="display: none;">
-                <p><?php print esc_html( $details ); ?></p>
+                <p><pre><?php print esc_html( print_r( $details, true ) ); ?></pre></p>
             </div>
         <?php
     }

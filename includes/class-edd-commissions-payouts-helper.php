@@ -311,13 +311,13 @@ class EDD_Commissions_Payouts_Helper {
      * @param string $payout_method
      * @return void
      */
-    public function log( $message = '', $type = 'notice', $details = '', $payout_method = '' ) {
+    public function log( $message = '', $type = '', $details = '', $payout_method = '' ) {
         $edd_log = new EDD_Logging();
 
         $log_meta = array(
-            'type'              => $type,
+            'type'              => empty( $type ) ? __( 'Notice', 'edd-commissions-payouts' ) : $type,
             'message'           => $message,
-            'details'           => is_array( $details ) ? json_encode( $details ) : $details,
+            'details'           => $details,
             'payout_method'     => $payout_method
         );
 

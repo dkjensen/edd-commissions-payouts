@@ -15,6 +15,8 @@ class EDD_Commissions_Payouts_Setup {
 
     public function __construct() {
         add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
+        add_action( 'admin_enqueue_scripts', array( $this, 'admin_enqueue_scripts' ) );
+        add_action( 'init', array( $this, 'register_post_type' ) );
         add_filter( 'edd_log_types', array( $this, 'register_log_type' ) );
         add_filter( 'edd_log_views', array( $this, 'register_log_view' ) );
         add_action( 'edd_logs_view_payouts', array( $this, 'log_view' ) );
@@ -37,16 +39,52 @@ class EDD_Commissions_Payouts_Setup {
         wp_register_script( 'edd-commissions-payouts', EDD_COMMISSIONS_PAYOUTS_PLUGIN_URL . 'assets/js/edd-commissions-payouts' . $suffix . '.js', array( 'jquery', 'fes_form', 'fes_sw', 'fes_spin', 'fes_spinner' ), EDD_COMMISSIONS_PAYOUTS_VER, true );
     
         wp_localize_script( 'edd-commissions-payouts', 'eddcp_obj', array(
-            'user_payout_method_nonce'                => wp_create_nonce( 'process_payout_method' ),
-            'strings'                                 => array(
-                'error'                               => __( 'Error', 'edd-commissions-payouts' ),
-                'success'                             => __( 'Success', 'edd-commissions-payouts' ),
-                'loading'                             => __( 'Loading', 'edd-commissions-payouts' ),
-                'cancel'                              => __( 'Cancel', 'edd-commissions-payouts' ),
+            'user_payout_method_nonce'  => wp_create_nonce( 'process_payout_method' ),
+            'strings'                   => array(
+                'error'                 => __( 'Error', 'edd-commissions-payouts' ),
+                'success'               => __( 'Success', 'edd-commissions-payouts' ),
+                'loading'               => __( 'Loading', 'edd-commissions-payouts' ),
+                'cancel'                => __( 'Cancel', 'edd-commissions-payouts' ),
             )
         ) );
 
         wp_enqueue_script( 'edd-commissions-payouts' );
+    }
+
+
+    /**
+     * Back end scripts
+     *
+     * @return void
+     */
+    public function admin_enqueue_scripts() {
+        $suffix = defined( 'WP_DEBUG' ) && WP_DEBUG ? '' : '.min';
+
+        wp_enqueue_style( 'edd-commissions-payouts-admin', EDD_COMMISSIONS_PAYOUTS_PLUGIN_URL . 'assets/css/edd-commissions-payouts-admin' . $suffix . '.css', array(), EDD_COMMISSIONS_PAYOUTS_VER );
+
+        wp_register_script( 'edd-commissions-payouts-admin', EDD_COMMISSIONS_PAYOUTS_PLUGIN_URL . 'assets/js/edd-commissions-payouts-admin' . $suffix . '.js', array( 'jquery' ), EDD_COMMISSIONS_PAYOUTS_VER, true );
+    
+        wp_localize_script( 'edd-commissions-payouts-admin', 'eddcp_admin_obj', array(
+            'next_payout_nonce'         => wp_create_nonce( 'next_payout_nonce' ),
+            'strings'                   => array(
+                'next_payout_loading'   => __( 'Loading payout schedule preview', 'edd-commissions-payouts' ) . '&hellip;',
+                'next_payout_failed'    => __( 'AJAX request to get the payout schedule preview failed', 'edd-commissions-payouts' )
+            )
+        ) );
+
+        wp_enqueue_script( 'edd-commissions-payouts-admin' );
+    }
+
+
+    /**
+     * Registers the payout post type
+     *
+     * @return void
+     */
+    public function register_post_type() {
+        register_post_type( 'edd_payout', apply_filters( 'edd_payout_post_type_args', array(
+            'public'            => false,
+        ) ) );
     }
 
 

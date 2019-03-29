@@ -1,0 +1,16 @@
+#edd-payout-schedule-form {
+    .edd-payout-schedule-field {
+        margin: 0 0 .5em;
+    }
+    .edd-fixed-label {
+        width: 60px;
+        padding-right: 10px;
+        display: inline-block;
+    }
+    .edd-payout-schedule-input {
+        display: inline-block;
+    }
+    .edd-payout-schedule-input label + label {
+        padding-left: 10px;
+    }
+}

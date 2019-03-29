@@ -20,6 +20,12 @@ class EDD_Commissions_Payout_Method_PayPal extends EDD_Commissions_Payouts_Metho
 
         // EDD setting using custom hook
         add_action( 'edd_commissions_payout_method_settings_paypal_status', array( $this, 'status_field' ) );
+
+        // Filter credentials to be overridden by environment variables
+        add_filter( 'edd_get_option_commissions_payout_method_settings_paypal_client_id_live', array( $this, 'get_live_client_id' ) );
+        add_filter( 'edd_get_option_commissions_payout_method_settings_paypal_secret_live', array( $this, 'get_live_secret' ) );
+        add_filter( 'edd_get_option_commissions_payout_method_settings_paypal_client_id_sandbox', array( $this, 'get_sandbox_client_id' ) );
+        add_filter( 'edd_get_option_commissions_payout_method_settings_paypal_secret_sandbox', array( $this, 'get_sandbox_secret' ) );
     }
 
 
@@ -87,10 +93,10 @@ class EDD_Commissions_Payout_Method_PayPal extends EDD_Commissions_Payouts_Metho
      * @return string
      */
     public function get_mode() {
-        $mode = edd_get_option( 'commissions_payout_method_settings_paypal_mode', 'live' );
+        $mode = edd_get_option( 'commissions_payout_method_settings_paypal_mode', 'sandbox' );
 
         if ( ! in_array( $mode, array( 'live', 'sandbox' ) ) ) {
-            return 'live';
+            return 'sandbox';
         }
 
         return $mode;
@@ -105,7 +111,11 @@ class EDD_Commissions_Payout_Method_PayPal extends EDD_Commissions_Payouts_Metho
     public function get_client_id() {
         $mode = $this->get_mode();
 
-        return edd_get_option( 'commissions_payout_method_settings_paypal_client_id_' . $mode, '' );
+        if ( $mode == 'live' ) {
+            return $this->get_live_client_id();
+        }
+
+        return $this->get_sandbox_client_id();
     }
 
 
@@ -117,7 +127,87 @@ class EDD_Commissions_Payout_Method_PayPal extends EDD_Commissions_Payouts_Metho
     public function get_secret() {
         $mode = $this->get_mode();
 
-        return edd_get_option( 'commissions_payout_method_settings_paypal_secret_' . $mode, '' );
+        if ( $mode == 'live' ) {
+            return $this->get_live_secret();
+        }
+
+        return $this->get_sandbox_secret();
+    }
+
+
+    /**
+     * Returns live Client ID
+     *
+     * @param string $value
+     * @return string
+     */
+    public function get_live_client_id( $value = false ) {
+        if ( false === $value ) {
+            $value = edd_get_option( 'commissions_payout_method_settings_paypal_client_id_live' );
+        }
+
+        if ( false !== ( $client_id = getenv( 'EDD_COMMISSIONS_PAYOUT_PAYPAL_CLIENT_ID_LIVE' ) ) ) {
+            return $client_id;
+        }
+
+        return $value;
+    }
+
+
+    /**
+     * Returns live Secret
+     *
+     * @param string $value
+     * @return string
+     */
+    public function get_live_secret( $value = false ) {
+        if ( false === $value ) {
+            $value = edd_get_option( 'commissions_payout_method_settings_paypal_secret_live' );
+        }
+
+        if ( false !== ( $secret = getenv( 'EDD_COMMISSIONS_PAYOUT_PAYPAL_SECRET_LIVE' ) ) ) {
+            return $secret;
+        }
+
+        return $value;
+    }
+
+
+    /**
+     * Returns sandbox Client ID
+     *
+     * @param string $value
+     * @return string
+     */
+    public function get_sandbox_client_id( $value = false ) {
+        if ( false === $value ) {
+            $value = edd_get_option( 'commissions_payout_method_settings_paypal_client_id_sandbox' );
+        }
+
+        if ( false !== ( $client_id = getenv( 'EDD_COMMISSIONS_PAYOUT_PAYPAL_CLIENT_ID_SANDBOX' ) ) ) {
+            return $client_id;
+        }
+
+        return $value;
+    }
+
+
+    /**
+     * Returns sandbox Secret
+     *
+     * @param string $value
+     * @return string
+     */
+    public function get_sandbox_secret( $value = false ) {
+        if ( false === $value ) {
+            $value = edd_get_option( 'commissions_payout_method_settings_paypal_secret_sandbox' );
+        }
+
+        if ( false !== ( $secret = getenv( 'EDD_COMMISSIONS_PAYOUT_PAYPAL_SECRET_SANDBOX' ) ) ) {
+            return $secret;
+        }
+
+        return $value;
     }
 
 
@@ -127,7 +217,7 @@ class EDD_Commissions_Payout_Method_PayPal extends EDD_Commissions_Payouts_Metho
      * @param boolean $log Whether to log this request
      * @return string
      */
-    public function retrieve_access_token( $log = true ) {
+    public function get_access_token( $log = true ) {
         if ( ! empty( $this->get_client_id() ) && ! empty( $this->get_secret() ) ) {
             try {
                 $credentials = new \PayPal\Auth\OAuthTokenCredential( $this->get_client_id(), $this->get_secret() );
@@ -147,6 +237,65 @@ class EDD_Commissions_Payout_Method_PayPal extends EDD_Commissions_Payouts_Metho
     }
 
 
+    public function process_batch_payout() {
+        $payout = new EDD_Commissions_Payout();
+        $payout->set_payout_method( $this->get_id() );
+
+        $commissions = $this->get_payout_data();
+
+        if ( $commissions ) {
+            $apiContext = new \PayPal\Rest\ApiContext(
+                new \PayPal\Auth\OAuthTokenCredential( $this->get_client_id(), $this->get_secret() )
+            );
+
+            $payouts = new \PayPal\Api\Payout();
+            $senderBatchHeader = new \PayPal\Api\PayoutSenderBatchHeader();
+
+            $senderBatchHeader->setSenderBatchId( uniqid() )
+                              ->setEmailSubject( 'You have a payment' );
+            
+            $payouts->setSenderBatchHeader( $senderBatchHeader );
+            
+            foreach ( $commissions as $key => $commission ) {
+                $item = new \PayPal\Api\PayoutItem( array(
+                    'recipient_type'        => 'EMAIL',
+                    'receiver'              => $commission['email'],
+                    'note'                  => 'Thank you.',
+                    'sender_item_id'        => uniqid(),
+                    'amount'                => array(
+                        'value'             => $commission['amount'],
+                        'currency'          => edd_get_currency()
+                    )
+                ) );
+
+                $payouts->addItem( $item );
+            }
+
+            try {
+                $response = $payouts->create( null, $apiContext );
+
+                $payout->set_id( $response->getBatchHeader()->getPayoutBatchId() )
+                       ->set_message( __( 'Payout issued', 'edd-commissions-payouts' ) )
+                       ->set_amount( $response->getBatchHeader()->getAmount() )
+                       ->set_fees( $response->getBatchHeader()->getFees() )
+                       ->set_status( $response->getBatchHeader()->getBatchStatus() );
+
+                if ( $errors = $response->getBatchHeader()->getErrors() ) {
+                    $payout->set_error( $errors->getCode(), $errors->getMessage(), $errors->getDetails() );
+                }
+
+            }catch( Exception $e ) {
+                $payout->set_error( $e->getCode(), $e->getMessage() );
+
+            }
+        }else {
+            $payout->set_message( __( 'No payout issued', 'edd-commissions-payouts' ) );
+        }
+
+        $payout->save();
+    }
+
+
     /**
      * Renders the status of the PayPal API connection
      *
@@ -155,7 +304,7 @@ class EDD_Commissions_Payout_Method_PayPal extends EDD_Commissions_Payouts_Metho
     public function status_field() {
         try {
             // Will throw Exception if fail
-            $this->retrieve_access_token( false );
+            $this->get_access_token( false );
 
             print '<p><strong>' . __( 'Connected', 'edd-commissions-payouts' ) . '</strong></p>';
         }catch( Exception $e ) {

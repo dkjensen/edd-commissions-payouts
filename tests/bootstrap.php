@@ -25,21 +25,30 @@ require_once $_tests_dir . '/includes/functions.php';
 function _manually_load_plugin() {
     if( file_exists( dirname( dirname( __FILE__ ) ) . '/../easy-digital-downloads/easy-digital-downloads.php' ) ) {
         require dirname( dirname( __FILE__ ) ) . '/../easy-digital-downloads/easy-digital-downloads.php';
-
-        add_action( 'setup_theme', function() {
-            global $wp_rewrite;
-
-            edd_install();
-        });
     }
 
     if( file_exists( dirname( dirname( __FILE__ ) ) . '/../edd-fes/edd-fes.php' ) ) {
         require dirname( dirname( __FILE__ ) ) . '/../edd-fes/edd-fes.php';
     }
 
+    if( file_exists( dirname( dirname( __FILE__ ) ) . '/../edd-commissions/edd-commissions.php' ) ) {
+        require dirname( dirname( __FILE__ ) ) . '/../edd-commissions/edd-commissions.php';
+    }
+
 	require dirname( dirname( __FILE__ ) ) . '/edd-commissions-payouts.php';
 }
 tests_add_filter( 'muplugins_loaded', '_manually_load_plugin' );
 
+
+
+
 // Start up the WP testing environment.
 require $_tests_dir . '/includes/bootstrap.php';
+
+echo "Installing Easy Digital Downloads...\n";
+activate_plugin( 'easy-digital-downloads/easy-digital-downloads.php' );
+
+edd_run_install();
+
+echo "Installing Commissions...\n";
+edd_commissions_install();

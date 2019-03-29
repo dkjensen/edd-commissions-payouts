@@ -32,6 +32,13 @@ class EDD_Commissions_Payouts {
     public $helper;
 
     /**
+     * Payout schedule
+     *
+     * @var EDD_Commissions_Payouts_Schedule
+     */
+    public $schedule;
+
+    /**
      * FES integration
      *
      * @var EDD_Commissions_Payouts_FES
@@ -74,6 +81,7 @@ class EDD_Commissions_Payouts {
 
             self::$instance->setup          = new EDD_Commissions_Payouts_Setup;
             self::$instance->helper         = new EDD_Commissions_Payouts_Helper;
+            self::$instance->schedule       = new EDD_Commissions_Payouts_Schedule;
             self::$instance->fes            = new EDD_Commissions_Payouts_FES;
             self::$instance->commissions    = new EDD_Commissions_Payouts_Commissions;
             self::$instance->form_handler   = new EDD_Commissions_Payouts_Form_Handler;
@@ -89,8 +97,10 @@ class EDD_Commissions_Payouts {
      * @return void
      */
     public function includes() {
+        require_once EDD_COMMISSIONS_PAYOUTS_PLUGIN_DIR . 'includes/class-edd-commissions-payout.php';
         require_once EDD_COMMISSIONS_PAYOUTS_PLUGIN_DIR . 'includes/class-edd-commissions-payouts-setup.php';
         require_once EDD_COMMISSIONS_PAYOUTS_PLUGIN_DIR . 'includes/class-edd-commissions-payouts-helper.php';
+        require_once EDD_COMMISSIONS_PAYOUTS_PLUGIN_DIR . 'includes/class-edd-commissions-payouts-schedule.php';
         require_once EDD_COMMISSIONS_PAYOUTS_PLUGIN_DIR . 'includes/class-edd-commissions-payouts-form-handler.php';
         require_once EDD_COMMISSIONS_PAYOUTS_PLUGIN_DIR . 'includes/class-edd-commissions-payouts-fes.php';
         require_once EDD_COMMISSIONS_PAYOUTS_PLUGIN_DIR . 'includes/class-edd-commissions-payouts-commissions.php';
