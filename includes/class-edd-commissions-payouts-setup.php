@@ -66,9 +66,11 @@ class EDD_Commissions_Payouts_Setup {
     
         wp_localize_script( 'edd-commissions-payouts-admin', 'eddcp_admin_obj', array(
             'next_payout_nonce'         => wp_create_nonce( 'next_payout_nonce' ),
-            'strings'                   => array(
-                'next_payout_loading'   => __( 'Loading payout schedule preview', 'edd-commissions-payouts' ) . '&hellip;',
-                'next_payout_failed'    => __( 'AJAX request to get the payout schedule preview failed', 'edd-commissions-payouts' )
+            'strings'                                   => array(
+                'next_payout_loading'                   => __( 'Loading payout schedule preview', 'edd-commissions-payouts' ) . '&hellip;',
+                'next_payout_failed'                    => __( 'AJAX request to get the payout schedule preview failed', 'edd-commissions-payouts' ),
+                'confirm_enable_automatic_payouts'      => __( 'Enabling automatic payouts will automatically pay any commissions due according to the payout schedule you have set. Are you sure you would like to proceed?', 'edd-commissions-payouts' ),
+                'confirm_disable_automatic_payouts'     => __( 'Disabling automatic payouts will cancel any scheduled commissions payouts from occuring. Are you sure you would like to proceed?', 'edd-commissions-payouts' )
             )
         ) );
 

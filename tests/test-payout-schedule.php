@@ -304,10 +304,8 @@ class PayoutScheduleTest extends WP_UnitTestCase {
         $schedule->generateOccurrences();
 
         $this->assertEquals( new DateTime( '1997-09-01 12:00:00' ), current( $schedule->occurrences ) );
-    }
 
-
-    public function test_calculate_payout_schedule_timezones() {
+        
         update_option( 'timezone_string', 'America/Los_Angeles' );
 
         $hour = 14;

@@ -31,4 +31,20 @@
         });
     } );
 
+    jQuery( '#edd_disable_automatic_payouts' ).on( 'click', function(e) {
+        var prompt = confirm( eddcp_admin_obj.strings.confirm_disable_automatic_payouts );
+
+        if ( prompt != true ) {
+            e.preventDefault();
+        }
+    } );
+
+    jQuery( '#edd_enable_automatic_payouts' ).on( 'click', function(e) {
+        var prompt = confirm( eddcp_admin_obj.strings.confirm_enable_automatic_payouts );
+
+        if ( prompt != true ) {
+            e.preventDefault();
+        }
+    } );
+
 } )(jQuery);

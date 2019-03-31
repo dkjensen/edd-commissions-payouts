@@ -37,15 +37,17 @@ class EDD_Commissions_Payouts_Commissions {
 
         $settings[] = array(
             'id'      => 'edd_commissions_payout_schedule_status',
-            'name'    => __( 'Payout Schedule Status', 'edd-commissions-payouts' ),
+            'name'    => __( 'Automatic Payouts Status', 'edd-commissions-payouts' ),
             'type'    => 'hook',
         );
 
-        $settings[] = array(
-            'id'      => 'edd_commissions_payout_schedule',
-            'name'    => __( 'Payout Schedule', 'edd-commissions-payouts' ),
-            'type'    => 'hook',
-        );
+        if ( ! EDD_Commissions_Payouts()->schedule->is_enabled() ) {
+            $settings[] = array(
+                'id'      => 'edd_commissions_payout_schedule',
+                'name'    => __( 'Payout Schedule', 'edd-commissions-payouts' ),
+                'type'    => 'hook',
+            );
+        }
 
         foreach ( $payout_method_objects as $payout_method ) {
             if ( $payout_method->settings() ) {
@@ -58,24 +60,14 @@ class EDD_Commissions_Payouts_Commissions {
 
 
     public function field_payout_schedule_status() {
-        $status      = EDD_Commissions_Payouts()->schedule->is_enabled();
-        $toggle_url  = wp_nonce_url( admin_url(), 'toggle_payout_schedule_status' );
-        $next_payout = edd_commissions_payouts_convert_utc_timestamp( EDD_Commissions_Payouts()->schedule->get_next_scheduled_payout() );
+        $toggle_url = wp_nonce_url( add_query_arg( array( 'edd_toggle_payout_schedule_status' => 1 ), admin_url() ), 'toggle_payout_schedule_status' );
 
-        if ( $status ) : ?>
-
-        <p><a href="<?php print esc_url( add_query_arg( array( 'edd_toggle_payout_schedule_status' => 1, 'status' => 'disable' ), $toggle_url ) ); ?>" class="button button-secondary"><?php _e( 'Disable Scheduled Payouts', 'edd-commissions-payouts' ); ?></a></p>
-        <p class="success-message">
-            <strong><?php printf( __( 'Next payout scheduled for %s', 'edd-commissions-payouts' ), date_i18n( edd_commissions_payouts_time_format(), $next_payout ) ); ?></strong>
-        </p>
-
-        <?php else : ?>
-
-        <p><a href="<?php print esc_url( add_query_arg( array( 'edd_toggle_payout_schedule_status' => 1, 'status' => 'enable' ), $toggle_url ) ); ?>" class="button button-primary"><?php _e( 'Enable Scheduled Payouts', 'edd-commissions-payouts' ); ?></a></p>
-
-        <?php endif; ?>
-
-        <?php
+        if ( EDD_Commissions_Payouts()->schedule->is_enabled() ) {
+            printf( '<a href="%s" class="button button-delete" id="edd_disable_automatic_payouts">%s</a>', add_query_arg( array( 'status' => 'disable' ), $toggle_url ), __( 'Disable Automatic Payouts', 'edd-commissions-payouts' ) );
+            printf( '<p class="description">%s</p>', __( 'Automatic payouts must be disabled in order to change the payout schedule.', 'edd-commissions-payouts' ) );
+        }else {
+            printf( '<a href="%s" class="button button-primary" id="edd_enable_automatic_payouts">%s</a>', add_query_arg( array( 'status' => 'enable' ), $toggle_url ), __( 'Enable Automatic Payouts', 'edd-commissions-payouts' ) );
+        }
     }
 
 
