@@ -149,18 +149,12 @@ class EDD_Commissions_Payouts_Form_Handler {
             $interval   = isset( $fields['interval'] ) ? $fields['interval'] : '';
             $repeats_on = isset( $fields['on'] ) ? $fields['on'] : '';
             $hour       = isset( $fields['hour'] ) ? $fields['hour'] : '';
-            $minute     = isset( $fields['min'] ) ? $fields['min'] : '';
+            $min        = isset( $fields['min'] ) ? $fields['min'] : '';
 
-            /**
-             * Convert user given time to UTC
-             */
-            $utc_date = new DateTime;
-            $utc_date->setTime( $hour, $minute );
-            $utc_date->setTimestamp( $utc_date->getTimestamp() - ( get_option( 'gmt_offset' ) * 3600 ) );
-            
-            $payout_schedule = EDD_Commissions_Payouts()->schedule->calculate_payout_schedule( $mode, $interval, $repeats_on, $utc_date->format( 'G' ), $utc_date->format( 'i' ) );
-            $payout_schedule->count( 5 )
-                            ->generateOccurrences();
+            $payout_schedule = EDD_Commissions_Payouts()->schedule->calculate_payout_schedule( $mode, $interval, $repeats_on, $hour, $min );
+            $payout_schedule->count( 5 )->generateOccurrences();
+
+            //throw new Exception( $payout_schedule->startDate->format( 'Y-m-d G:i:s T' ) );
 
             $occurrences = $payout_schedule->occurrences;
 
@@ -213,6 +207,8 @@ class EDD_Commissions_Payouts_Form_Handler {
                 wp_safe_redirect( $goback );
                 exit;
             }catch( Exception $e ) {
+                EDD_Commissions_Payouts()->schedule->disable();
+
                 wp_die( $e->getMessage() );
             }
         }

@@ -131,9 +131,10 @@ module.exports = function(grunt) {
                     '!assets/**/*.scss',
 					'includes/**',
 					'languages/**',
-					'templates/**',
+                    'templates/**',
+                    'vendor/**',
 					'*.php',
-					'*.txt'
+                    '*.txt',
 				],
 				dest: 'build/<%= pkg.name %>/'
 			}
@@ -149,7 +150,7 @@ module.exports = function(grunt) {
 				expand: true,
 				cwd: 'build/<%= pkg.name %>/',
 				src: ['**/*'],
-				dest: '<%= pkg.name %>/'
+                dest: '<%= pkg.name %>/'
 			}
 		},
 

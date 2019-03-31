@@ -121,8 +121,12 @@ class EDD_Commissions_Payouts_Schedule {
                 throw new Exception( __( 'Scheduled payout time must be in a valid 24 hour format.', 'edd-commissions-payouts' ) );
             }
 
+            if ( empty( get_option( 'timezone_string' ) ) ) {
+                throw new Exception( __( 'Please set your websites timezone under Settings > General to schedule payouts.', 'edd-commissions-payouts' ) );
+            }
+
             if ( ! $start instanceof DateTime ) {
-                $start = new DateTime;
+                $start = new DateTime( null, new DateTimeZone( get_option( 'timezone_string' ) ) );
             }
 
             /**
@@ -158,8 +162,7 @@ class EDD_Commissions_Payouts_Schedule {
     public function get_payout_occurrences( $count = 10 ) {
         $when = $this->calculate_payout_schedule( $this->get_mode(), $this->get_interval(), $this->get_repeats_on(), $this->get_time_hour(), $this->get_time_min() );
         
-        $when->count( $count )
-             ->generateOccurrences();
+        $when->count( $count )->generateOccurrences();
 
         return $when->occurrences;
     }
@@ -172,6 +175,28 @@ class EDD_Commissions_Payouts_Schedule {
      */
     public function get_next_scheduled_payout() {
         return wp_next_scheduled( 'edd_commissions_payout' );
+    }
+
+
+    /**
+     * Returns an array of timestamps
+     *
+     * @return array
+     */
+    public function get_payout_schedule() {
+        $crons = _get_cron_array();
+
+        $schedule = array();
+
+        foreach ( $crons as $timestamp => $cron ) {
+            if ( isset( $cron[ 'edd_commissions_payout' ] ) ) {
+                $schedule[] = $timestamp;
+            }
+        }
+
+        sort( $schedule, SORT_NUMERIC );
+
+        return $schedule;
     }
 
 

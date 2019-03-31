@@ -11,6 +11,11 @@
 class PayoutScheduleTest extends WP_UnitTestCase {
 
 
+    public static function setUpBeforeClass() {
+        update_option( 'timezone_string', 'UTC' );
+    }
+
+
     /**
      * Test enabling / disabling the payout schedule
      *
@@ -210,15 +215,7 @@ class PayoutScheduleTest extends WP_UnitTestCase {
 
         $this->assertEquals( $tomorrow, current( $schedule->occurrences ) );
 
-        update_option( 'timezone_string', 'America/New_York' );
-
-        $schedule = EDD_Commissions_Payouts()->schedule->calculate_payout_schedule( 'daily', '1', array( 'su', 'mo', 'tu', 'we', 'th', 'fr', 'sa' ), 14, 37, new DateTime( '1997-09-01 14:42:00' ) );
-        $schedule->generateOccurrences();
-
-        $date = new DateTime( '1997-09-01 14:37:00' );
-        $date->modify( '+1 day' );
-
-        $this->assertEquals( $date, current( $schedule->occurrences ) );
+        
 
         $schedule = EDD_Commissions_Payouts()->schedule->calculate_payout_schedule( 'daily', '1', array( 'su', 'mo', 'tu', 'we', 'th', 'fr', 'sa' ), 0, 0 );
         $schedule->generateOccurrences();
@@ -228,17 +225,6 @@ class PayoutScheduleTest extends WP_UnitTestCase {
         $tomorrow->modify( '+1 day' );
 
         $this->assertEquals( $tomorrow, current( $schedule->occurrences ) );
-        
-
-        update_option( 'timezone_string', 'America/Los_Angeles' );
-
-        $schedule = EDD_Commissions_Payouts()->schedule->calculate_payout_schedule( 'daily', '1', array( 'su', 'mo', 'tu', 'we', 'th', 'fr', 'sa' ), 14, 37, new DateTime( '1997-09-01 14:42:00' ) );
-        $schedule->generateOccurrences();
-
-        $date = new DateTime( '1997-09-01 14:37:00' );
-        $date->modify( '+1 day' );
-
-        $this->assertEquals( $date, current( $schedule->occurrences ) );
 
         $schedule = EDD_Commissions_Payouts()->schedule->calculate_payout_schedule( 'daily', '1', array( 'su', 'mo', 'tu', 'we', 'th', 'fr', 'sa' ), 3, 33, new DateTime( '1997-09-01 03:22:00' ) );
         $schedule->generateOccurrences();
@@ -319,6 +305,126 @@ class PayoutScheduleTest extends WP_UnitTestCase {
 
         $this->assertEquals( new DateTime( '1997-09-01 12:00:00' ), current( $schedule->occurrences ) );
     }
+
+
+    public function test_calculate_payout_schedule_timezones() {
+        update_option( 'timezone_string', 'America/Los_Angeles' );
+
+        $hour = 14;
+        $min = 37;
+
+        $schedule = EDD_Commissions_Payouts()->schedule->calculate_payout_schedule( 'daily', '1', array( 'su', 'mo', 'tu', 'we', 'th', 'fr', 'sa' ), $hour, $min );
+        $schedule->generateOccurrences();
+
+        $date = new DateTime( null, new DateTimeZone( get_option( 'timezone_string' ) ) );
+
+        if ( $date->format( 'G' ) > $hour || ( $date->format( 'G' ) == $hour && $date->format( 'i' ) >= $min ) ) {
+            $date->modify( '+1 day' );
+        }
+        
+        $date->setTime( $hour, $min );
+
+        $this->assertEquals( $date, current( $schedule->occurrences ) );
+
+        $hour = 1;
+        $min = 3;
+
+        $schedule = EDD_Commissions_Payouts()->schedule->calculate_payout_schedule( 'daily', '1', array( 'su', 'mo', 'tu', 'we', 'th', 'fr', 'sa' ), $hour, $min );
+        $schedule->generateOccurrences();
+
+        $date = new DateTime( null, new DateTimeZone( get_option( 'timezone_string' ) ) );
+
+        if ( $date->format( 'G' ) > $hour || ( $date->format( 'G' ) == $hour && $date->format( 'i' ) >= $min ) ) {
+            $date->modify( '+1 day' );
+        }
+        
+        $date->setTime( $hour, $min );
+
+        $this->assertEquals( $date, current( $schedule->occurrences ) );
+
+        update_option( 'timezone_string', 'America/New_York' );
+
+        $hour = 20;
+        $min = 59;
+
+        $schedule = EDD_Commissions_Payouts()->schedule->calculate_payout_schedule( 'daily', '1', array( 'su', 'mo', 'tu', 'we', 'th', 'fr', 'sa' ), $hour, $min );
+        $schedule->generateOccurrences();
+
+        $date = new DateTime( null, new DateTimeZone( get_option( 'timezone_string' ) ) );
+
+        if ( $date->format( 'G' ) > $hour || ( $date->format( 'G' ) == $hour && $date->format( 'i' ) >= $min ) ) {
+            $date->modify( '+1 day' );
+        }
+        
+        $date->setTime( $hour, $min );
+
+        $this->assertEquals( $date, current( $schedule->occurrences ) );
+    }
+
+
+    /**
+     * Test daily payout schedule
+     *
+     * @return void
+     */
+    public function test_payout_schedule_daily() {
+        update_option( 'timezone_string', 'America/New_York' );
+
+        edd_update_option( 'edd_commissions_payout_schedule_mode', 'daily' );
+        edd_update_option( 'edd_commissions_payout_schedule_interval', '1' );
+        edd_update_option( 'edd_commissions_payout_schedule_on', array( 'su', 'mo', 'tu', 'we', 'th', 'fr', 'sa' ) );
+        edd_update_option( 'edd_commissions_payout_schedule_time_hr', '20' );
+        edd_update_option( 'edd_commissions_payout_schedule_time_min', '05' );
+
+        EDD_Commissions_Payouts()->schedule->enable();
+
+        $payout_count = apply_filters( 'edd_commissions_number_scheduled_payouts', 10 );
+
+        $date = new DateTime( null, new DateTimeZone( get_option( 'timezone_string' ) ) );
+
+        if ( $date->format( 'G' ) < 20 || ( $date->format( 'G' ) == 20 && $date->format( 'i' ) < 05 ) ) {
+            $date->modify( '-1 day' );
+        }
+
+        $schedule = EDD_Commissions_Payouts()->schedule->get_payout_schedule();
+
+        for( $i = 0; $i < $payout_count; $i++ ) {
+            $date->modify( '+1 day' );
+            $date->setTime( 20, 05, 00 );
+
+            $this->assertEquals( $date->getTimestamp(), $schedule [ $i ] );
+        }
+    }
+
+
+    /**
+     * Test weekly payout schedule
+     *
+     * @return void
+     */
+    public function test_payout_schedule_weekly() {
+        edd_update_option( 'edd_commissions_payout_schedule_mode', 'weekly' );
+        edd_update_option( 'edd_commissions_payout_schedule_interval', '1' );
+        edd_update_option( 'edd_commissions_payout_schedule_on', array( 'mo' ) );
+        edd_update_option( 'edd_commissions_payout_schedule_time_hr', '10' );
+        edd_update_option( 'edd_commissions_payout_schedule_time_min', '00' );
+
+        EDD_Commissions_Payouts()->schedule->enable();
+
+        $payout_count = apply_filters( 'edd_commissions_number_scheduled_payouts', 10 );
+
+        $date = new DateTime( null, new DateTimeZone( get_option( 'timezone_string' ) ) );
+
+        $schedule = EDD_Commissions_Payouts()->schedule->get_payout_schedule();
+
+        for( $i = 0; $i < $payout_count; $i++ ) {
+            $date->modify( 'next monday' );
+            $date->setTime( 10, 00, 00 );
+
+            $this->assertEquals( $date->getTimestamp(), $schedule [ $i ] );
+        }
+    }
+
 
     /**
      * Test various scenarios of invalid payout schedule settings
@@ -444,5 +550,20 @@ class PayoutScheduleTest extends WP_UnitTestCase {
         EDD_Commissions_Payouts()->schedule->schedule_payouts();
 
         $this->assertGreaterThan( time(), EDD_Commissions_Payouts()->schedule->get_next_scheduled_payout() );
+    }
+
+
+    public function test_convert_utc_timestamp_to_local_wp() {
+        update_option( 'timezone_string', 'America/New_York' );
+
+        $local_time = edd_commissions_payouts_convert_utc_timestamp( '1553972993' );
+
+        $this->assertEquals( '1553958593', $local_time );
+
+        update_option( 'timezone_string', 'America/Los_Angeles' );
+
+        $local_time = edd_commissions_payouts_convert_utc_timestamp( '1553972993' );
+
+        $this->assertEquals( '1553947793', $local_time );
     }
 }

@@ -154,7 +154,7 @@ abstract class EDD_Commissions_Payouts_Method {
      * @return string
      */
     public function enabled_message() {
-        $message = sprintf( __( '%s payout method has been enabled successfully.', 'edd-commissions-payout' ) );
+        $message = sprintf( __( '%s payout method has been enabled successfully.', 'edd-commissions-payouts' ) );
 
         return apply_filters( 'edd_commissions_payout_method_enabled_message', $message, $this );
     }
@@ -166,7 +166,7 @@ abstract class EDD_Commissions_Payouts_Method {
      * @return string
      */
     public function removed_message() {
-        $message = sprintf( __( '%s payout method has been removed successfully.', 'edd-commissions-payout' ) );
+        $message = sprintf( __( '%s payout method has been removed successfully.', 'edd-commissions-payouts' ) );
 
         return apply_filters( 'edd_commissions_payout_method_removed_message', $message, $this );
     }

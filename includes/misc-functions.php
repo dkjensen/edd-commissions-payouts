@@ -17,10 +17,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @return string
  */
 function edd_commissions_payouts_time_format() {
-    $date_format = get_option( 'date_format' );
-    $time_format = get_option( 'time_format' );
-
-    return apply_filters( 'edd_commissions_payouts_time_format', $date_format . ' ' . $time_format );
+    return apply_filters( 'edd_commissions_payouts_time_format', 'l, F jS, Y \a\t h:ia' );
 }
 
 
