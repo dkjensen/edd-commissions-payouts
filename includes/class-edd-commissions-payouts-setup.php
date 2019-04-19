@@ -14,12 +14,20 @@ if ( ! defined( 'ABSPATH' ) ) {
 class EDD_Commissions_Payouts_Setup {
 
     public function __construct() {
+        // Scripts
         add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
         add_action( 'admin_enqueue_scripts', array( $this, 'admin_enqueue_scripts' ) );
+
+        // Post types
         add_action( 'init', array( $this, 'register_post_type' ) );
+
+        // Logs
         add_filter( 'edd_log_types', array( $this, 'register_log_type' ) );
         add_filter( 'edd_log_views', array( $this, 'register_log_view' ) );
         add_action( 'edd_logs_view_payouts', array( $this, 'log_view' ) );
+
+        // Payouts
+        add_action( 'admin_menu', array( $this, 'register_payouts_view' ) );
     }
 
 
@@ -40,6 +48,7 @@ class EDD_Commissions_Payouts_Setup {
     
         wp_localize_script( 'edd-commissions-payouts', 'eddcp_obj', array(
             'user_payout_method_nonce'  => wp_create_nonce( 'process_payout_method' ),
+            'ajaxurl'                   => admin_url( 'admin-ajax.php' ),
             'strings'                   => array(
                 'error'                 => __( 'Error', 'edd-commissions-payouts' ),
                 'success'               => __( 'Success', 'edd-commissions-payouts' ),
@@ -65,7 +74,8 @@ class EDD_Commissions_Payouts_Setup {
         wp_register_script( 'edd-commissions-payouts-admin', EDD_COMMISSIONS_PAYOUTS_PLUGIN_URL . 'assets/js/edd-commissions-payouts-admin' . $suffix . '.js', array( 'jquery' ), EDD_COMMISSIONS_PAYOUTS_VER, true );
     
         wp_localize_script( 'edd-commissions-payouts-admin', 'eddcp_admin_obj', array(
-            'next_payout_nonce'         => wp_create_nonce( 'next_payout_nonce' ),
+            'next_payout_nonce'                         => wp_create_nonce( 'next_payout_nonce' ),
+            'ajaxurl'                                   => admin_url( 'admin-ajax.php' ),
             'strings'                                   => array(
                 'next_payout_loading'                   => __( 'Loading payout schedule preview', 'edd-commissions-payouts' ) . '&hellip;',
                 'next_payout_failed'                    => __( 'AJAX request to get the payout schedule preview failed', 'edd-commissions-payouts' ),
@@ -135,6 +145,31 @@ class EDD_Commissions_Payouts_Setup {
         </div>
     
         <?php
+    }
 
+
+    /**
+     * Renders the payouts schedule / table
+     *
+     * @return void
+     */
+    public function register_payouts_view() {
+        add_submenu_page( 'edit.php?post_type=download', __( 'Payouts', 'edd-commissions-payouts' ), __( 'Payouts', 'edd-commissions-payouts' ), 'manage_shop_settings', 'edd-payouts', function() {
+            $payouts_table = new EDD_Commissions_Payouts_Payouts_Table();
+            $payouts_table->prepare_items();
+            
+            ?>
+
+            <div class="wrap">
+                <h1><?php _e( 'Payouts', 'edd-commissions-payouts' ); ?></h1>
+                <form id="edd-payouts-filter" method="get" action="<?php echo admin_url( 'edit.php?post_type=edd_payout&page=edd-payouts' ); ?>">
+                    <?php $payouts_table->display(); ?>
+                    <input type="hidden" name="post_type" value="edd_payout" />
+			        <input type="hidden" name="page" value="edd-payouts" />
+                </form>
+            </div>
+
+            <?php
+        } );
     }
 }

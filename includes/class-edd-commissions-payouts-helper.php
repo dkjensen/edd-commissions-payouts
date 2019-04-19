@@ -136,9 +136,19 @@ class EDD_Commissions_Payouts_Helper {
             $user_id = get_current_user_id();
         }
 
-        $enabled_methods = (array) get_user_meta( $user_id, 'edd_enabled_payout_methods', true );
+        $user_enabled_methods = (array) get_user_meta( $user_id, 'edd_enabled_payout_methods', true );
+        $enabled_methods      = array_keys( $this->get_enabled_payout_methods() );
 
-        return apply_filters( 'edd_commissions_user_enabled_payout_methods', array_filter( $enabled_methods ), $user_id );
+        // Check if user has enabled payout methods which are not enabled on the site
+        $not_enabled          = array_diff( $user_enabled_methods, $enabled_methods );
+
+        if ( ! empty( $not_enabled ) ) {
+            $user_enabled_methods = array_intersect( $user_enabled_methods, $enabled_methods );
+
+            update_user_meta( $user_id, 'edd_enabled_payout_methods', $user_enabled_methods );
+        }
+
+        return apply_filters( 'edd_commissions_user_enabled_payout_methods', array_filter( $user_enabled_methods ), $user_id );
     }
 
 
@@ -303,22 +313,61 @@ class EDD_Commissions_Payouts_Helper {
 
 
     /**
+     * Returns the commissions to payout between a period of time
+     *
+     * @return array
+     */
+    public function get_payout_data() {
+        if ( function_exists( 'eddc_get_unpaid_commissions' ) ) {
+            $commissions = eddc_get_unpaid_commissions( array( 'number' => -1 ) );
+
+            if ( $commissions ) {
+                $payouts = array();
+
+                foreach ( $commissions as $commission ) {
+
+                    $user          = get_userdata( $commission->user_id );
+                    $custom_paypal = get_user_meta( $commission->user_id, 'eddc_user_paypal', true );
+                    $email         = is_email( $custom_paypal ) ? $custom_paypal : $user->user_email;
+                    $key           = md5( $email . $commission->currency );
+
+                    if ( array_key_exists( $key, $payouts ) ) {
+                        $payouts[ $key ]['amount'] += $commission->amount;
+                        $payouts[ $key ]['ids'][]   = $commission->id;
+                    } else {
+                        $payouts[ $key ] = array(
+                            'email'         => $email,
+                            'amount'        => $commission->amount,
+                            'currency'      => $commission->currency,
+                            'ids'           => array( $commission->id ),
+                            'user_id'       => $commission->user_id
+                        );
+                    }
+                }
+
+                return $payouts;
+            }
+        }else {
+            throw new Exception( __( 'Please confirm the Commissions add-on for Easy Digital Downloads is active.', 'edd-commissions-payouts' ) );
+        }
+    }
+
+
+    /**
      * Add entry to EDD Payouts log
      *
      * @param string $message
      * @param string $type
      * @param string $details
-     * @param string $payout_method
      * @return void
      */
-    public function log( $message = '', $type = '', $details = '', $payout_method = '' ) {
+    public function log( $message = '', $type = '', $details = '' ) {
         $edd_log = new EDD_Logging();
 
         $log_meta = array(
             'type'              => empty( $type ) ? __( 'Notice', 'edd-commissions-payouts' ) : $type,
             'message'           => $message,
             'details'           => $details,
-            'payout_method'     => $payout_method
         );
 
         $log_entry = $edd_log->insert_log( array( 'log_type' => 'payouts' ), $log_meta );

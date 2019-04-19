@@ -143,6 +143,8 @@ class PayoutsHelperTest extends WP_UnitTestCase {
 
     /**
      * Test removing a payout method that exists in the usermeta but the object no longer exists
+     * 
+     * @expectedException Exception
      *
      * @return void
      */
@@ -151,9 +153,7 @@ class PayoutsHelperTest extends WP_UnitTestCase {
 
         update_user_meta( $user_id, 'edd_enabled_payout_methods', array( 'randomstring' ) );
 
-        $response = EDD_Commissions_Payouts()->helper->remove_user_payout_method( 'randomstring', $user_id );
-
-        $this->assertTrue( $response );
+        EDD_Commissions_Payouts()->helper->remove_user_payout_method( 'randomstring', $user_id );
     }
 
     /**

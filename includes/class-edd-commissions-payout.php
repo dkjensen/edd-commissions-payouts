@@ -13,7 +13,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 class EDD_Commissions_Payout {
 
     /**
-     * Unique payout ID returned by the payment processor
+     * Payout post ID
      *
      * @var string
      */
@@ -21,44 +21,27 @@ class EDD_Commissions_Payout {
 
 
     /**
-     * Error code returned by the payment processor
+     * Unique payout ID returned by the payment processor
      *
      * @var string
      */
-    protected $error_code;
+    protected $txn_id;
 
 
     /**
-     * Error message returned by the payment processor
+     * Errors returned by the payment processor
      *
      * @var string
      */
-    protected $error_message;
+    protected $errors = array();
 
 
     /**
-     * Error details returned by the payment processor
+     * Payout status
      *
      * @var string
      */
-    protected $error_details;
-
-
-    /**
-     * Returns the payout method payment processor
-     *
-     * @var string
-     */
-    protected $payout_method;
-    
-
-    /**
-     * Payout message
-     *
-     * @var string
-     */
-    protected $message;
-
+    protected $status;
 
     /**
      * Total payout amount
@@ -85,22 +68,41 @@ class EDD_Commissions_Payout {
 
 
     /**
-     * Set the payout ID
+     * API response details
      *
-     * @param string $id
-     * @return EDD_Commissions_Payout $this
+     * @var string
      */
-    public function set_id( $id ) {
-        $this->id = $id;
+    protected $details;
 
-        return $this;
+
+    /**
+     * If payout ID is given populate the object with post meta
+     *
+     * @param mixed $payout_id
+     */
+    public function __construct( $payout_id = null ) {
+        if ( null !== $payout_id ) {
+            $this->id = $payout_id;
+
+            $methods = preg_grep( '/^get_/', get_class_methods( $this ) );
+
+            if ( $methods ) {
+                foreach ( $methods as $method ) {
+                    if ( is_callable( array( $this, $method ) ) ) {
+                        $prop = substr( $method, 4 );
+
+                        $this->{$prop} = get_post_meta( $payout_id, $prop, true );
+                    }
+                }
+            }
+        }
     }
 
 
     /**
-     * Returns unique payout ID returned by the payment processor 
+     * Get post ID if set
      *
-     * @return string
+     * @return integer
      */
     public function get_id() {
         return $this->id;
@@ -108,96 +110,105 @@ class EDD_Commissions_Payout {
 
 
     /**
-     * Set an error returned by the payment processor
+     * Set transaction ID
      *
-     * @param string $code
-     * @param string $message
+     * @return EDD_Commissions_Payout $this
+     */
+    public function set_txn_id( $txn_id ) {
+        $this->txn_id = $txn_id;
+
+        return $this;
+    }
+
+
+    /**
+     * Get transaction ID from payout gateway response
+     *
+     * @return string
+     */
+    public function get_txn_id() {
+        return $this->txn_id;
+    }
+
+
+    /**
+     * Adds an error returned by the payment processor
+     *
+     * @param string $error
+     * @return EDD_Commissions_Payout $this
+     */
+    public function add_error( $error ) {
+        $this->errors[] = $error;
+
+        return $this;
+    }
+
+
+    /**
+     * Returns error messages returned by the payment processor
+     *
+     * @return array
+     */
+    public function get_errors() {
+        return $this->errors;
+    }
+
+
+    /**
+     * Returns whether or not any errors occured during the payout
+     *
+     * @return boolean
+     */
+    public function has_errors() {
+        return ! empty( $this->get_errors() );
+    }
+
+
+    /**
+     * Set the payout status
+     *
+     * @param string $status
+     * @return EDD_Commissions_Payout $this
+     */
+    public function set_status( $status ) {
+        $this->status = $status;
+
+        return $this;
+    }
+
+
+    /**
+     * Returns the payout status
+     *
+     * @return string
+     */
+    public function get_status() {
+        return $this->status;
+    }
+
+
+    /**
+     * Set the payout details
+     *
      * @param string $details
      * @return EDD_Commissions_Payout $this
      */
-    public function set_error( $code, $message, $details = '' ) {
-        $this->error_code = $code;
-        $this->error_message = $message;
-        $this->error_details = $details;
+    public function set_details( $details ) {
+        $this->details = $details;
 
         return $this;
     }
 
 
     /**
-     * Returns error message returned by the payment processor
+     * Returns the payout details
      *
      * @return string
      */
-    public function get_error_message() {
-        return $this->error_message;
-    }
-    
-
-    /**
-     * Returns error code returned by the payment processor
-     *
-     * @return string
-     */
-    public function get_error_code() {
-        return $this->error_code;
+    public function get_details() {
+        return $this->details;
     }
 
-
-    /**
-     * Returns error details returned by the payment processor
-     *
-     * @return string
-     */
-    public function get_error_details() {
-        return $this->error_details;
-    }
-
-
-    /**
-     * Set the payout method payment processor
-     *
-     * @param string $payout_method
-     * @return EDD_Commissions_Payout $this
-     */
-    public function set_payout_method( $payout_method ) {
-        $this->payout_method = $payout_method;
-
-        return $this;
-    }
-
-
-    /**
-     * Returns the payout method
-     *
-     * @return string
-     */
-    public function get_payout_method() {
-        return $this->payout_method;
-    }
-
-
-    /**
-     * Set the payout message
-     *
-     * @param string $message
-     * @return EDD_Commissions_Payout $this
-     */
-    public function set_message( $message ) {
-        $this->message = $message;
-
-        return $this;
-    }
-
-
-    /**
-     * Returns the payout message
-     *
-     * @return string
-     */
-    public function get_message() {
-        return $this->message;
-    }
 
     /**
      * Sets the total payout amount
@@ -205,7 +216,7 @@ class EDD_Commissions_Payout {
      * @param float $amount
      * @return EDD_Commissions_Payout $this
      */
-    public function set_payout_amount( $amount ) {
+    public function set_amount( $amount ) {
         $this->amount = (float) $amount;
 
         return $this;
@@ -217,8 +228,18 @@ class EDD_Commissions_Payout {
      *
      * @return float
      */
-    public function get_payout_amount() {
+    public function get_amount() {
         return (float) $this->amount;
+    }
+
+
+    /**
+     * Returns the formatted total payout amount with currency symbol
+     *
+     * @return void
+     */
+    public function get_formatted_amount() {
+        return edd_currency_filter( edd_format_amount( $this->get_amount() ) );
     }
 
 
@@ -228,7 +249,7 @@ class EDD_Commissions_Payout {
      * @param float $fees
      * @return EDD_Commissions_Payout $this
      */
-    public function set_payout_fees( $fees ) {
+    public function set_fees( $fees ) {
         $this->fees = (float) $fees;
 
         return $this;
@@ -240,7 +261,7 @@ class EDD_Commissions_Payout {
      *
      * @return float
      */
-    public function get_payout_fees() {
+    public function get_fees() {
         return (float) $this->fees;
     }
 
@@ -269,55 +290,95 @@ class EDD_Commissions_Payout {
 
 
     /**
-     * Returns a human readable string describing the payout
+     * Returns an array of payout recipients, filtered by payout method
      *
-     * @return string
+     * @param string $payout_method
+     * @return array
      */
-    protected function payout_message() {
-        if ( $this->get_payout_amount() === 0.00 ) {
-            $message = sprintf( __( 'No payout owed for the period %s', 'edd-commissions-payouts' ), '' );
-        }elseif( empty( $this->get_recipients() ) ) {
-            $message = sprintf( __( 'No recipients set to receive payout for the period %s', 'edd-commissions-payouts' ), '' );
+    public function get_recipients_by_payout_method( $payout_method ) {
+        return (array) array_filter( $this->recipients, function( $recipient ) use ( $payout_method ) {
+            return $recipient['payout_method'] == $payout_method;
+        } );
+    }
+
+
+    /**
+     * Sets the recipients array
+     *
+     * @param array $recipients
+     * @return EDD_Commissions_Payout $this
+     */
+    public function update_recipient( array $data ) {
+        $user_id = isset( $data['user_id'] ) ? intval( $data['user_id'] ) : 0;
+
+        if ( isset( $this->recipients[ $user_id ] ) ) {
+            $this->recipients[ $user_id ] = array_merge( $this->recipients[ $user_id ], $data );
         }else {
-            $message = sprintf( __( 'Payout initiated in the amount of %s for the period %s', 'edd-commissions-payouts' ), $this->get_payout_amount(), '' );
+            $this->recipients[ $user_id ] = wp_parse_args( $data, array(
+                'payout_amount'     => 0,
+                'payout_fees'       => 0,
+                'payout_currency'   => edd_get_currency(),
+                'payout_method'     => null,
+                'payout_paid'       => 0,
+                'payout_status'     => null,
+            ) );
         }
 
-        return apply_filters( 'edd_commissions_payouts_log_message', $message, $this );
+        return $this;
+    }
+
+
+    public function execute() {
+        $payout = array();
+
+        $enabled_payout_methods = EDD_Commissions_Payouts()->helper->get_enabled_payout_methods();
+
+        foreach ( EDD_Commissions_Payouts()->helper->get_payout_data() as $commission ) {
+            $user_preferred_method = EDD_Commissions_Payouts()->helper->get_user_preferred_payout_method( $commission['user_id'] );
+
+            $this->update_recipient( array(
+                'user_id'           => $commission['user_id'],
+                'payout_amount'     => number_format( (float) $commission['amount'], 2 ),
+                'payout_method'     => $user_preferred_method
+            ) );
+        }
+
+        foreach ( $enabled_payout_methods as $key => $payout_method ) {
+            $payout_method->process_batch_payout( $this );
+        }
+
+        $this->save();
     }
 
 
     /**
      * Saves a payout record to the database and logs to the EDD payout log
      *
-     * @return void
+     * @return EDD_Commissions_Payout
      */
     public function save() {
-        $data = array();
-        $methods = preg_grep( '/^get_/', get_class_methods( $this ) );
-
-        var_dump( $this->get_payout_amount() );
-
-        if ( $methods ) {
-            foreach ( $methods as $method ) {
-                if ( is_callable( array( $this, $method ) ) ) {
-                    $prop = substr( $method, 4 );
-
-                    $data[ $prop ] = call_user_func( array( $this, $method ) );
-                }
-            }
-        }
-
         $payout = wp_insert_post( array(
+            'ID'                => $this->get_id(),
             'post_type'         => 'edd_payout',
+            'post_status'       => 'publish',
             'post_title'        => $this->get_id(),
-            'meta_input'        => $data
+            'meta_input'        => array(
+                'txn_id'            => $this->get_txn_id(),
+                'errors'            => $this->get_errors(),
+                'status'            => $this->get_status(),
+                'details'           => $this->get_details(),
+                'amount'            => $this->get_amount(),
+                'fees'              => $this->get_fees(),
+                'recipients'        => $this->get_recipients(),
+            )
         ) );
 
         EDD_Commissions_Payouts()->helper->log( 
-            $this->payout_message(), 
+            __( 'Payout initiated', 'edd-commissions-payouts' ), 
             'Payout', 
-            array( 'payout_post_id' => $payout, 'response' => $data ), 
-            $this->get_payout_method() 
+            array( 'payout_post_id' => $payout, 'response' => get_post_meta( $payout ) )
         );
+
+        return new EDD_Commissions_Payout( $payout );
     }
 }

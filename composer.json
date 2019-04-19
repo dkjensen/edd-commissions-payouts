@@ -2,9 +2,9 @@
     "name": "dkjensen/edd-commissions-payouts",
     "type": "wordpress-plugin",
     "require": {
-        "paypal/rest-api-sdk-php": "^1.14",
         "composer/installers": "1.6.0",
-        "tplaner/when": "^2.1"
+        "tplaner/when": "^2.1",
+        "guzzlehttp/guzzle": "^6.3"
     },
     "require-dev": {
         "phpunit/phpunit": "8.0.5"

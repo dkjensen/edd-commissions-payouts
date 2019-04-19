@@ -1,8 +1,7 @@
 ( function($) {
 
-    jQuery( '#edd-payout-schedule-form :input' ).on( 'change', function() {
-
-        jQuery('#edd-next-payout').html( eddcp_admin_obj.strings.next_payout_loading );
+    function load_payout_schedule_preview() {
+        jQuery( '#edd-next-payout' ).html( eddcp_admin_obj.strings.next_payout_loading );
 
         var on = jQuery( '[name="edd_settings[edd_commissions_payout_schedule_on][]"]:checked' ).map( function() {
             return jQuery( this ).val();
@@ -25,10 +24,16 @@
             url:        ajaxurl,
             data:       form_data,
         }).done( function( data ) {
-            jQuery('#edd-next-payout').html( data );
+            jQuery( '#edd-next-payout' ).html( data );
         }).fail( function() {
-            jQuery('#edd-next-payout').html( eddcp_admin_obj.strings.next_payout_failed );
+            jQuery( '#edd-next-payout' ).html( eddcp_admin_obj.strings.next_payout_failed );
         });
+    }
+
+    jQuery( '#preview-payout-schedule' ).on( 'click', function(e) {
+        e.preventDefault();
+
+        load_payout_schedule_preview();
     } );
 
     jQuery( '#edd_disable_automatic_payouts' ).on( 'click', function(e) {

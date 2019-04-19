@@ -16,6 +16,8 @@ class EDD_Commissions_Payouts_Commissions {
         add_filter( 'eddc_settings', array( $this, 'settings' ) );
         add_action( 'edd_edd_commissions_payout_schedule_status', array( $this, 'field_payout_schedule_status' ) );
         add_action( 'edd_edd_commissions_payout_schedule', array( $this, 'field_payout_schedule' ) );
+
+        add_action( 'edd_commissions_payout', array( $this, 'execute_payout' ) );
     }
 
     /**
@@ -63,8 +65,13 @@ class EDD_Commissions_Payouts_Commissions {
         $toggle_url = wp_nonce_url( add_query_arg( array( 'edd_toggle_payout_schedule_status' => 1 ), admin_url() ), 'toggle_payout_schedule_status' );
 
         if ( EDD_Commissions_Payouts()->schedule->is_enabled() ) {
-            printf( '<a href="%s" class="button button-delete" id="edd_disable_automatic_payouts">%s</a>', add_query_arg( array( 'status' => 'disable' ), $toggle_url ), __( 'Disable Automatic Payouts', 'edd-commissions-payouts' ) );
-            printf( '<p class="description">%s</p>', __( 'Automatic payouts must be disabled in order to change the payout schedule.', 'edd-commissions-payouts' ) );
+            ?>
+
+            <a href="<?php print add_query_arg( array( 'status' => 'disable' ), $toggle_url ); ?>" class="button button-delete" id="edd_disable_automatic_payouts"><?php _e( 'Disable Automatic Payouts', 'edd-commissions-payouts' ); ?></a>
+            <p class="description"><?php _e( 'Automatic payouts must be disabled in order to change the payout schedule.', 'edd-commissions-payouts' ); ?></p>
+
+            <?php
+
         }else {
             printf( '<a href="%s" class="button button-primary" id="edd_enable_automatic_payouts">%s</a>', add_query_arg( array( 'status' => 'enable' ), $toggle_url ), __( 'Enable Automatic Payouts', 'edd-commissions-payouts' ) );
         }
@@ -148,6 +155,12 @@ class EDD_Commissions_Payouts_Commissions {
                 </div>
             </div>
             <p>&nbsp;</p>
+
+            <div class="edd-payout-schedule-field">
+                <?php submit_button( null, 'primary', null, false ); ?>
+                <a href="#" class="button button-secondary" id="preview-payout-schedule"><?php _e( 'Preview Schedule', 'edd-commissions-payouts' ); ?></a>
+            </div>
+
             <p class="description" id="edd-next-payout"></p>
         </div>
 
@@ -218,6 +231,30 @@ class EDD_Commissions_Payouts_Commissions {
             }
         }else {
             throw new Exception( __( 'Please confirm the Commissions add-on for Easy Digital Downloads is active.', 'edd-commissions-payouts' ) );
+        }
+    }
+
+
+    /**
+     * Performs the actual payout process
+     *
+     * @return void
+     */
+    public function execute_payout() {
+        $payout = array();
+
+        $enabled_payout_methods = EDD_Commissions_Payouts()->helper->get_enabled_payout_methods();
+
+        foreach ( EDD_Commissions_Payouts()->helper->get_payout_data() as $commission ) {
+            $user_preferred_method = EDD_Commissions_Payouts()->helper->get_user_preferred_payout_method( $commission['user_id'] );
+
+            $payout[ $user_preferred_method ][ $commission['user_id'] ] = $commission['amount'];
+        }
+
+        foreach ( $enabled_payout_methods as $key => $payout_method ) {
+            if ( ! empty( $payout[ $key ] ) ) {
+                $payout_method->process_batch_payout( $payout[ $key ] );
+            }
         }
     }
 }

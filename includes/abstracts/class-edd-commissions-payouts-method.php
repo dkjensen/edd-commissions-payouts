@@ -70,6 +70,15 @@ abstract class EDD_Commissions_Payouts_Method {
 
 
     /**
+     * Performs the actual payout
+     *
+     * @param EDD_Commissions_Payout Instance of the payout
+     * @return void
+     */
+    abstract public function process_batch_payout( EDD_Commissions_Payout &$payout );
+
+
+    /**
      * Returns the unique identifier for the payout method
      *
      * @return void
@@ -213,46 +222,5 @@ abstract class EDD_Commissions_Payouts_Method {
      */
     public function log_error( $message, $details ) {
         EDD_Commissions_Payouts()->helper->log( $message, 'Error', $details, $this->get_id() );
-    }
-
-
-    /**
-     * Returns the commissions to payout between a period of time
-     *
-     * @return array
-     */
-    public function get_payout_data() {
-        if ( function_exists( 'eddc_get_unpaid_commissions' ) ) {
-            $commissions = eddc_get_unpaid_commissions( array( 'number' => -1 ) );
-
-            if ( $commissions ) {
-                $payouts = array();
-
-                foreach ( $commissions as $commission ) {
-
-                    $user          = get_userdata( $commission->user_id );
-                    $custom_paypal = get_user_meta( $commission->user_id, 'eddc_user_paypal', true );
-                    $email         = is_email( $custom_paypal ) ? $custom_paypal : $user->user_email;
-                    $key           = md5( $email . $commission->currency );
-
-                    if ( array_key_exists( $key, $payouts ) ) {
-                        $payouts[ $key ]['amount'] += $commission->amount;
-                        $payouts[ $key ]['ids'][]   = $commission->id;
-                    } else {
-                        $payouts[ $key ] = array(
-                            'email'      => $email,
-                            'amount'     => $commission->amount,
-                            'currency'   => $commission->currency,
-                            'ids'        => array( $commission->id ),
-                            'user_id'    => $commission->user_id,
-                        );
-                    }
-                }
-
-                return $payouts;
-            }
-        }else {
-            throw new Exception( __( 'Please confirm the Commissions add-on for Easy Digital Downloads is active.', 'edd-commissions-payouts' ) );
-        }
     }
 }

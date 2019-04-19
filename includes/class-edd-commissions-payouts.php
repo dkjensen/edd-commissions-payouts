@@ -104,6 +104,7 @@ class EDD_Commissions_Payouts {
         require_once EDD_COMMISSIONS_PAYOUTS_PLUGIN_DIR . 'includes/class-edd-commissions-payouts-form-handler.php';
         require_once EDD_COMMISSIONS_PAYOUTS_PLUGIN_DIR . 'includes/class-edd-commissions-payouts-fes.php';
         require_once EDD_COMMISSIONS_PAYOUTS_PLUGIN_DIR . 'includes/class-edd-commissions-payouts-commissions.php';
+        require_once EDD_COMMISSIONS_PAYOUTS_PLUGIN_DIR . 'includes/class-edd-commissions-payouts-payouts-table.php';
         require_once EDD_COMMISSIONS_PAYOUTS_PLUGIN_DIR . 'includes/class-edd-commissions-payouts-log-table.php';
 
         require_once EDD_COMMISSIONS_PAYOUTS_PLUGIN_DIR . 'includes/abstracts/class-edd-commissions-payouts-method.php';

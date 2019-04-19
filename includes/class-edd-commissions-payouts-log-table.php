@@ -1,11 +1,14 @@
 <?php
 /**
- * EDD_RP_Logs_Table Class
+ * EDD_Commissions_Payouts_Log_Table
  *
- * Renders the file downloads log view
- *
- * @since 1.2.6
+ * @package EDD Commissions Payouts
  */
+
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
 
 // Load WP_List_Table if not loaded
 if ( ! class_exists( 'WP_List_Table' ) ) {

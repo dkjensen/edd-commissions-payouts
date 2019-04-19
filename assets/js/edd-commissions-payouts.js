@@ -1,5 +1,7 @@
 ( function($) {
 
+    var eddcp_req = null;
+
     function swalLoading() {
         swal({
             title: eddcp_obj.strings.loading + "...",
@@ -29,12 +31,10 @@
             edd_action: 'toggle_payout_method'
         };
 
-        var request = null;
-
-        request = jQuery.ajax({
+        eddcp_req = jQuery.ajax({
             type:       'POST',
             dataType:   'json',
-            url:        ajaxurl,
+            url:        eddcp_obj.ajaxurl,
             data:       form_data,
         }).done( function( data ) {
             if( data.type == 'error' ) {
@@ -65,12 +65,10 @@
             edd_action: 'preferred_payout_method'
         };
 
-        var request = null;
-
-        request = jQuery.ajax({
+        eddcp_req = jQuery.ajax({
             type:       'POST',
             dataType:   'json',
-            url:        ajaxurl,
+            url:        eddcp_obj.ajaxurl,
             data:       form_data,
         }).done( function( data ) {
             if( data.type == 'error' ) {
@@ -87,8 +85,8 @@
 
     // Abort AJAX request on cancel
     jQuery('body').on('click', '.edd_commissions_payouts_alert .cancel', function(e) {
-        if( null !== request ) {
-            request.abort();
+        if( null !== eddcp_req ) {
+            eddcp_req.abort();
         }
     });
 

@@ -52,3 +52,9 @@ edd_run_install();
 
 echo "Installing Commissions...\n";
 edd_commissions_install();
+
+/**
+ * Helper classes
+ */
+require_once 'helpers/class-helper-payment.php';
+require_once 'helpers/class-helper-download.php';
