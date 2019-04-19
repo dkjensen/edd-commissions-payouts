@@ -25,9 +25,6 @@ class EDD_Commissions_Payouts_Setup {
         add_filter( 'edd_log_types', array( $this, 'register_log_type' ) );
         add_filter( 'edd_log_views', array( $this, 'register_log_view' ) );
         add_action( 'edd_logs_view_payouts', array( $this, 'log_view' ) );
-
-        // Payouts
-        add_action( 'admin_menu', array( $this, 'register_payouts_view' ) );
     }
 
 
@@ -94,9 +91,48 @@ class EDD_Commissions_Payouts_Setup {
      * @return void
      */
     public function register_post_type() {
-        register_post_type( 'edd_payout', apply_filters( 'edd_payout_post_type_args', array(
+        $args = array(
             'public'            => false,
-        ) ) );
+            'show_ui'           => true,
+            'show_in_menu'      => 'edit.php?post_type=download',
+            'show_in_admin_bar' => false,
+            'rewrites'          => false,
+            'hierarchical'      => false,
+			'query_var'         => false,
+			'supports'          => false,
+			'can_export'        => true,
+            'capability_type'   => 'post',
+			'capabilities'      => array(
+				'publish_posts'       => 'cap_that_doesnt_exist',
+				'edit_posts'          => 'manage_shop_settings',
+				'edit_others_posts'   => 'manage_shop_settings',
+				'delete_posts'        => 'cap_that_doesnt_exist',
+				'delete_others_posts' => 'cap_that_doesnt_exist',
+				'read_private_posts'  => 'cap_that_doesnt_exist',
+				'edit_post'           => 'manage_shop_settings',
+				'delete_post'         => 'cap_that_doesnt_exist',
+				'read_post'           => 'manage_shop_settings',
+				'create_posts'        => 'cap_that_doesnt_exist',
+			),
+            'labels'            => array(
+                'name'               => _x( 'Payouts', 'post type general name', 'edd-commissions-payouts' ),
+                'singular_name'      => _x( 'Payout', 'post type singular name', 'edd-commissions-payouts' ),
+                'menu_name'          => _x( 'Payouts', 'admin menu', 'edd-commissions-payouts' ),
+                'name_admin_bar'     => _x( 'Payout', 'add new on admin bar', 'edd-commissions-payouts' ),
+                'add_new'            => _x( 'Add New', 'payout', 'edd-commissions-payouts' ),
+                'add_new_item'       => __( 'Add New Payout', 'edd-commissions-payouts' ),
+                'new_item'           => __( 'New Payout', 'edd-commissions-payouts' ),
+                'edit_item'          => __( 'Edit Payout', 'edd-commissions-payouts' ),
+                'view_item'          => __( 'View Payout', 'edd-commissions-payouts' ),
+                'all_items'          => __( 'Payouts', 'edd-commissions-payouts' ),
+                'search_items'       => __( 'Search Payouts', 'edd-commissions-payouts' ),
+                'parent_item_colon'  => __( 'Parent Payouts:', 'edd-commissions-payouts' ),
+                'not_found'          => __( 'No payouts found.', 'edd-commissions-payouts' ),
+                'not_found_in_trash' => __( 'No payouts found in Trash.', 'edd-commissions-payouts' )
+            )
+        );
+
+        register_post_type( 'edd_payout', apply_filters( 'edd_payout_post_type_args', $args ) );
     }
 
 
@@ -145,31 +181,5 @@ class EDD_Commissions_Payouts_Setup {
         </div>
     
         <?php
-    }
-
-
-    /**
-     * Renders the payouts schedule / table
-     *
-     * @return void
-     */
-    public function register_payouts_view() {
-        add_submenu_page( 'edit.php?post_type=download', __( 'Payouts', 'edd-commissions-payouts' ), __( 'Payouts', 'edd-commissions-payouts' ), 'manage_shop_settings', 'edd-payouts', function() {
-            $payouts_table = new EDD_Commissions_Payouts_Payouts_Table();
-            $payouts_table->prepare_items();
-            
-            ?>
-
-            <div class="wrap">
-                <h1><?php _e( 'Payouts', 'edd-commissions-payouts' ); ?></h1>
-                <form id="edd-payouts-filter" method="get" action="<?php echo admin_url( 'edit.php?post_type=edd_payout&page=edd-payouts' ); ?>">
-                    <?php $payouts_table->display(); ?>
-                    <input type="hidden" name="post_type" value="edd_payout" />
-			        <input type="hidden" name="page" value="edd-payouts" />
-                </form>
-            </div>
-
-            <?php
-        } );
     }
 }

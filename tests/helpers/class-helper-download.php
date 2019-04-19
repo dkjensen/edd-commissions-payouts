@@ -44,7 +44,7 @@ class EDD_Helper_Download extends WP_UnitTestCase {
 		);
 
 		$meta = array(
-			'edd_price'                         => '20.00',
+			'edd_price'                         => number_format( rand( 100, 10000 ) / 100, 2 ),
 			'_variable_pricing'                 => 0,
 			'edd_variable_prices'               => false,
 			'edd_download_files'                => array_values( $_download_files ),
@@ -83,11 +83,11 @@ class EDD_Helper_Download extends WP_UnitTestCase {
 		$_variable_pricing = array(
 			array(
 				'name'   => 'Simple',
-				'amount' => 20
+				'amount' => number_format( rand( 100, 10000 ) / 100, 2 )
 			),
 			array(
 				'name'   => 'Advanced',
-				'amount' => 100
+				'amount' => number_format( rand( 100, 10000 ) / 100, 2 )
 			)
 		);
 

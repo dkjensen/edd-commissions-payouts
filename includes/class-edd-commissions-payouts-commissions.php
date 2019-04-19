@@ -241,20 +241,7 @@ class EDD_Commissions_Payouts_Commissions {
      * @return void
      */
     public function execute_payout() {
-        $payout = array();
-
-        $enabled_payout_methods = EDD_Commissions_Payouts()->helper->get_enabled_payout_methods();
-
-        foreach ( EDD_Commissions_Payouts()->helper->get_payout_data() as $commission ) {
-            $user_preferred_method = EDD_Commissions_Payouts()->helper->get_user_preferred_payout_method( $commission['user_id'] );
-
-            $payout[ $user_preferred_method ][ $commission['user_id'] ] = $commission['amount'];
-        }
-
-        foreach ( $enabled_payout_methods as $key => $payout_method ) {
-            if ( ! empty( $payout[ $key ] ) ) {
-                $payout_method->process_batch_payout( $payout[ $key ] );
-            }
-        }
+        $payout = new EDD_Commissions_Payout;
+        $payout->execute();
     }
 }

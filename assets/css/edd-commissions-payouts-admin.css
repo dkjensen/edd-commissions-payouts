@@ -21,3 +21,77 @@
     color: #fff;
     background: #ce3030;
     border-color: #9c0808 #9a0f0f #a00808; }
+
+.payout-status {
+  display: inline-flex;
+  line-height: 2.5em;
+  color: #777;
+  background: #e5e5e5;
+  border-radius: 4px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  margin: -.25em 0;
+  cursor: inherit !important;
+  white-space: nowrap;
+  max-width: 100%; }
+  .payout-status span {
+    margin: 0 1em;
+    overflow: hidden;
+    text-overflow: ellipsis; }
+  .payout-status.pending {
+    background: #f8dda7;
+    color: #94660c; }
+  .payout-status.failed, .payout-status.canceled {
+    background: #eba3a3;
+    color: #761919; }
+  .payout-status.processing {
+    background: #c6e1c6;
+    color: #5b841b; }
+  .payout-status.complete {
+    background: #c8d7e1;
+    color: #2e4453; }
+
+#payout_recipients .hndle {
+  display: none; }
+
+#payout_recipients .inside {
+  display: block !important;
+  margin: 0;
+  padding: 0;
+  background: #fefefe; }
+
+.edd-commissions-payouts-table {
+  width: 100%;
+  background: #ffffff; }
+  .edd-commissions-payouts-table thead th {
+    text-align: left;
+    padding: 1em;
+    font-weight: 400;
+    color: #999;
+    background: #f8f8f8;
+    user-select: none; }
+    .edd-commissions-payouts-table thead th:first-child {
+      padding-left: 2em; }
+    .edd-commissions-payouts-table thead th:last-child {
+      padding-right: 2em; }
+  .edd-commissions-payouts-table td {
+    padding: 1.5em 1em 1em;
+    text-align: left;
+    line-height: 1.5em;
+    vertical-align: top;
+    border-bottom: 1px solid #f8f8f8; }
+    .edd-commissions-payouts-table td:first-child {
+      padding-left: 2em; }
+    .edd-commissions-payouts-table td:last-child {
+      padding-right: 2em; }
+  .edd-commissions-payouts-table tr:first-child td {
+    border-top: none; }
+
+.edd_payout_note {
+  word-break: break-word;
+  padding: 10px;
+  background: #efefef;
+  position: relative;
+  margin: 0 0 10px; }
+  .edd_payout_note.payout_error {
+    background: #fff0f0;
+    color: #761919; }

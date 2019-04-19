@@ -29,7 +29,15 @@ class EDD_Commissions_Payout {
 
 
     /**
-     * Errors returned by the payment processor
+     * Notes during interaction with the payment processor
+     *
+     * @var string
+     */
+    protected $notes = array();
+
+
+    /**
+     * Errors received during interaction with the payment processor
      *
      * @var string
      */
@@ -82,8 +90,6 @@ class EDD_Commissions_Payout {
      */
     public function __construct( $payout_id = null ) {
         if ( null !== $payout_id ) {
-            $this->id = $payout_id;
-
             $methods = preg_grep( '/^get_/', get_class_methods( $this ) );
 
             if ( $methods ) {
@@ -95,6 +101,8 @@ class EDD_Commissions_Payout {
                     }
                 }
             }
+
+            $this->id = $payout_id;
         }
     }
 
@@ -132,7 +140,40 @@ class EDD_Commissions_Payout {
 
 
     /**
-     * Adds an error returned by the payment processor
+     * Adds a note returned by the payment processor
+     *
+     * @param string $note
+     * @return EDD_Commissions_Payout $this
+     */
+    public function add_note( $note ) {
+        $this->notes[] = $note;
+
+        return $this;
+    }
+
+
+    /**
+     * Returns notes returned by the payment processor
+     *
+     * @return array
+     */
+    public function get_notes() {
+        return array_filter( (array) $this->notes );
+    }
+
+
+    /**
+     * Returns whether or not any notes have been added
+     *
+     * @return boolean
+     */
+    public function has_notes() {
+        return ! empty( $this->get_notes() );
+    }
+
+
+    /**
+     * Adds a error returned by the payment processor
      *
      * @param string $error
      * @return EDD_Commissions_Payout $this
@@ -145,24 +186,23 @@ class EDD_Commissions_Payout {
 
 
     /**
-     * Returns error messages returned by the payment processor
+     * Returns errors returned by the payment processor
      *
      * @return array
      */
     public function get_errors() {
-        return $this->errors;
+        return array_filter( (array) $this->errors );
     }
 
 
     /**
-     * Returns whether or not any errors occured during the payout
+     * Returns whether or not any errors have been added
      *
      * @return boolean
      */
     public function has_errors() {
         return ! empty( $this->get_errors() );
     }
-
 
     /**
      * Set the payout status
@@ -267,6 +307,16 @@ class EDD_Commissions_Payout {
 
 
     /**
+     * Returns the formatted total payout fees with currency symbol
+     *
+     * @return void
+     */
+    public function get_formatted_fees() {
+        return edd_currency_filter( edd_format_amount( $this->get_fees() ) );
+    }
+
+
+    /**
      * Sets the recipients array
      *
      * @param array $recipients
@@ -315,12 +365,14 @@ class EDD_Commissions_Payout {
             $this->recipients[ $user_id ] = array_merge( $this->recipients[ $user_id ], $data );
         }else {
             $this->recipients[ $user_id ] = wp_parse_args( $data, array(
+                'user_id'           => $user_id,
                 'payout_amount'     => 0,
                 'payout_fees'       => 0,
                 'payout_currency'   => edd_get_currency(),
                 'payout_method'     => null,
                 'payout_paid'       => 0,
                 'payout_status'     => null,
+                'receiver'          => null
             ) );
         }
 
@@ -364,6 +416,7 @@ class EDD_Commissions_Payout {
             'post_title'        => $this->get_id(),
             'meta_input'        => array(
                 'txn_id'            => $this->get_txn_id(),
+                'notes'             => $this->get_notes(),
                 'errors'            => $this->get_errors(),
                 'status'            => $this->get_status(),
                 'details'           => $this->get_details(),
@@ -376,7 +429,7 @@ class EDD_Commissions_Payout {
         EDD_Commissions_Payouts()->helper->log( 
             __( 'Payout initiated', 'edd-commissions-payouts' ), 
             'Payout', 
-            array( 'payout_post_id' => $payout, 'response' => get_post_meta( $payout ) )
+            array( 'payout_post_id' => $payout, 'response' => $this->get_details() )
         );
 
         return new EDD_Commissions_Payout( $payout );

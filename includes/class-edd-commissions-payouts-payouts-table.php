@@ -22,7 +22,7 @@ class EDD_Commissions_Payouts_Payouts_Table extends WP_List_Table {
 	 *
 	 * @var int
 	 */
-	public $per_page = 15;
+	public $per_page = 50;
 
 
 	/**
@@ -59,10 +59,14 @@ class EDD_Commissions_Payouts_Payouts_Table extends WP_List_Table {
 	 */
 	public function get_columns() {
 		$columns = array(
-			'id'                => __( 'ID', 'edd-commissions-payouts' ),
+            'id'                => __( 'ID', 'edd-commissions-payouts' ),
+            'txn_id'            => __( 'Transaction ID', 'edd-commissions-payouts' ),
+            'date'              => __( 'Date', 'edd-commissions-payouts' ),
             'amount'            => __( 'Amount', 'edd-commissions-payouts' ),
+            'fees'              => __( 'Fees', 'edd-commissions-payouts' ),
             'recipients'        => __( 'Recipients', 'edd-commissions-payouts' ),
-			'date'              => __( 'Date', 'edd-commissions-payouts' ),
+            'status'            => __( 'Status', 'edd-commissions-payouts' ),
+            'notes'             => sprintf( '<span><span class="vers comment-grey-bubble" title="%1$s"><span class="screen-reader-text">%1$s</span></span></span>', __( 'Notes', 'edd-commissions-payouts' ) ),
         );
         
 		return $columns;
@@ -108,10 +112,36 @@ class EDD_Commissions_Payouts_Payouts_Table extends WP_List_Table {
 	 * @return void
 	 */
 	function prepare_items() {
-		global $edd_logs;
+		global $wpdb;
 
-        $this->_column_headers = array( $this->get_columns(), array(), $this->get_sortable_columns() );
+        $paged  = $this->get_paged();
+        $offset = ( $this->per_page * ( $paged - 1 ) );
 
+        $items = $wpdb->get_results( $wpdb->prepare( "
+            SELECT SQL_CALC_FOUND_ROWS
+                ID as id,
+                MAX(CASE WHEN $wpdb->postmeta.meta_key = 'txn_id' THEN $wpdb->postmeta.meta_value ELSE NULL END) as txn_id,
+                MAX(CASE WHEN $wpdb->postmeta.meta_key = 'amount' THEN $wpdb->postmeta.meta_value ELSE NULL END) as amount,
+                MAX(CASE WHEN $wpdb->postmeta.meta_key = 'fees' THEN $wpdb->postmeta.meta_value ELSE NULL END) as fees,
+                MAX(CASE WHEN $wpdb->postmeta.meta_key = 'status' THEN $wpdb->postmeta.meta_value ELSE NULL END) as status,
+                MAX(CASE WHEN $wpdb->postmeta.meta_key = 'errors' THEN $wpdb->postmeta.meta_value ELSE NULL END) as notes,
+                post_date as date
+            FROM        $wpdb->posts
+            LEFT JOIN   $wpdb->postmeta
+            ON          $wpdb->posts.ID = $wpdb->postmeta.post_id
+            WHERE       $wpdb->posts.post_type = 'edd_payout'
+            AND         $wpdb->posts.post_status = 'publish'
+            GROUP BY    $wpdb->posts.ID
+            ORDER BY    $wpdb->posts.post_date DESC
+            LIMIT       %d
+            OFFSET      %d
+        ", $this->per_page, $offset ), ARRAY_A );
+
+        $this->items = $items;
+
+        $found_rows = $wpdb->get_var( "SELECT FOUND_ROWS();" );
+
+        /*
         $items = new WP_Query( array(
             'post_type'         => 'edd_payout',
             'posts_per_page'    => $this->per_page,
@@ -124,16 +154,24 @@ class EDD_Commissions_Payouts_Payouts_Table extends WP_List_Table {
 
             $this->items[] = array(
                 'id'            => $payout->get_id(),
+                'txn_id'        => $payout->get_txn_id(),
+                'date'          => $item->post_date,
                 'amount'        => $payout->get_formatted_amount(),
-                'date'          => $item->post_date
+                'fees'          => $payout->get_formatted_fees(),
+                'recipients'    => sizeof( $payout->get_recipients() ),
+                'status'        => $payout->get_status(),
+                'notes'         => intval( $payout->has_errors() )
             );
         }
+        */
 
 		$this->set_pagination_args( array(
-				'total_items'  => $items->found_posts,
+				'total_items'  => $found_rows,
 				'per_page'     => $this->per_page,
-				'total_pages'  => ceil( $items->found_posts / $this->per_page )
+				'total_pages'  => ceil( $found_rows / $this->per_page )
 			)
-		);
+        );
+        
+        $this->_column_headers = array( $this->get_columns(), array(), $this->get_sortable_columns() );
 	}
 }

@@ -234,7 +234,7 @@ class EDD_Commissions_Payout_Method_PayPal extends EDD_Commissions_Payouts_Metho
                         'value'             => $recipient['payout_amount'],
                         'currency'          => $recipient['payout_currency'],
                     ),
-                    'note'              => 'Thanks for your patronage!',
+                    'note'              => apply_filters( 'edd_commissions_payout_note', sprintf( __( '%s Payout Notification', 'edd-commissions-payouts' ), get_option( 'blogname' ) ) ),
                     'sender_item_id'    => uniqid(),
                     'receiver'          => $email,
                 );
@@ -255,30 +255,31 @@ class EDD_Commissions_Payout_Method_PayPal extends EDD_Commissions_Payouts_Metho
             return $this->access_token;
         }
 
-        $headers = array();
-        $headers[] = 'Accept: application/json';
-        $headers[] = 'Accept-Language: en_US';
-        $headers[] = 'Content-Type: application/x-www-form-urlencoded';
+        try {
+            $headers = array();
+            $headers[] = 'Accept: application/json';
+            $headers[] = 'Accept-Language: en_US';
+            $headers[] = 'Content-Type: application/x-www-form-urlencoded';
 
-        $client = new \GuzzleHttp\Client;
+            $client = new \GuzzleHttp\Client;
 
-        $response = $client->request( 'POST', 'https://api.sandbox.paypal.com/v1/oauth2/token', array(
-            'auth'          => array( $this->get_client_id(), $this->get_secret() ),
-            'headers'       => $headers,
-            'form_params'   => array( 'grant_type' => 'client_credentials' ),
-            'verify'        => false
-        ) );
+            $response = $client->request( 'POST', 'https://api.sandbox.paypal.com/v1/oauth2/token', array(
+                'auth'          => array( $this->get_client_id(), $this->get_secret() ),
+                'headers'       => $headers,
+                'form_params'   => array( 'grant_type' => 'client_credentials' ),
+                'verify'        => false
+            ) );
 
-        $result = (string) $response->getBody();
-
-        if ( substr( $response->getStatusCode(), 0, 1 ) != 2 ) {
-            throw new Exception( $result );
-        }else {
+            $result = (string) $response->getBody();
             $result = json_decode( $result );
 
             $this->access_token = $result->access_token;
 
             return $result->access_token;
+        }catch( Exception $e ) {
+            $response = json_decode( (string) $e->getResponse()->getBody() );
+
+            throw new Exception( sprintf( '<strong>%s</strong> - %s', $response->name, $response->message ) );
         }
     }
 
@@ -290,33 +291,35 @@ class EDD_Commissions_Payout_Method_PayPal extends EDD_Commissions_Payouts_Metho
      * @return array
      */
     protected function post_payout( array $items ) {
-        $client = new \GuzzleHttp\Client;
+        try {
+            $client = new \GuzzleHttp\Client;
 
-        $headers = array();
-        $headers[] = 'Content-Type: application/json';
-        $headers[] = 'Authorization: Bearer ' . $this->get_access_token();
+            $headers = array();
+            $headers[] = 'Content-Type: application/json';
+            $headers[] = 'Authorization: Bearer ' . $this->get_access_token();
 
-        $response = $client->request( 'POST', 'https://api.sandbox.paypal.com/v1/payments/payouts', array(
-            'auth'          => array( $this->get_client_id(), $this->get_secret() ),
-            'headers'       => $headers,
-            'json'          => array(
-                'sender_batch_header'   => array(
-                    'sender_batch_id'       => uniqid(),
-                    'email_subject'         => 'You have a payout!',
-                    'email_message'         => 'You have received a payout! Thanks for using our service!',
+            $response = $client->request( 'POST', 'https://api.sandbox.paypal.com/v1/payments/payouts', array(
+                'auth'          => array( $this->get_client_id(), $this->get_secret() ),
+                'headers'       => $headers,
+                'json'          => array(
+                    'sender_batch_header'   => array(
+                        'sender_batch_id'       => uniqid(),
+                        'email_subject'         => 'You have a payout!',
+                        'email_message'         => 'You have received a payout! Thanks for using our service!',
+                    ),
+                    'items'                 => $items,
                 ),
-                'items'                 => $items,
-            ),
-            'verify'        => false
-        ) );
+                'verify'        => false
+            ) );
 
-        $result = (string) $response->getBody();
+            $result = (string) $response->getBody();
 
-        if ( substr( $response->getStatusCode(), 0, 1 ) != 2 ) {
-            throw new Exception( $result );
+            return $result;
+        }catch( Exception $e ) {
+            $response = json_decode( (string) $e->getResponse()->getBody() );
+
+            throw new Exception( sprintf( '<strong>%s</strong> - %s', $response->name, $response->message ) );
         }
-
-        return $result;
     }
 
 
@@ -327,28 +330,36 @@ class EDD_Commissions_Payout_Method_PayPal extends EDD_Commissions_Payouts_Metho
      * @return array
      */
     protected function payout_details( string $payout_id ) {
-        $client = new \GuzzleHttp\Client;
-        
-        $headers = array();
-        $headers[] = 'Content-Type: application/json';
-        $headers[] = 'Authorization: Bearer ' . $this->get_access_token();
+        try {
+            $client = new \GuzzleHttp\Client;
+            
+            $headers = array();
+            $headers[] = 'Content-Type: application/json';
+            $headers[] = 'Authorization: Bearer ' . $this->get_access_token();
 
-        $response = $client->request( 'GET', 'https://api.sandbox.paypal.com/v1/payments/payouts/' . $payout_id, array(
-            'auth'          => array( $this->get_client_id(), $this->get_secret() ),
-            'headers'       => $headers,
-            'verify'        => false
-        ) );
+            $response = $client->request( 'GET', 'https://api.sandbox.paypal.com/v1/payments/payouts/' . $payout_id, array(
+                'auth'          => array( $this->get_client_id(), $this->get_secret() ),
+                'headers'       => $headers,
+                'verify'        => false
+            ) );
 
-        $result = (string) $response->getBody();
+            $result = (string) $response->getBody();
 
-        if ( substr( $response->getStatusCode(), 0, 1 ) != 2 ) {
-            throw new Exception( $result );
+            return $result;
+        }catch( Exception $e ) {
+            $response = json_decode( (string) $e->getResponse()->getBody() );
+
+            throw new Exception( sprintf( '<strong>%s</strong> - %s', $response->name, $response->message ) );
         }
-
-        return $result;
     }
 
 
+    /**
+     * Finds a user ID by their WP email or PayPal email
+     *
+     * @param string $email
+     * @return integer|boolean
+     */
     protected function get_user_id_by_email( $email ) {
         global $wpdb;
 
@@ -370,6 +381,33 @@ class EDD_Commissions_Payout_Method_PayPal extends EDD_Commissions_Payouts_Metho
         }
 
         return false;
+    }
+
+
+    protected function standardize_status( $status ) {
+        switch ( $status ) {
+            case 'DENIED' :
+                $status = 'failed';
+                break;
+            
+            case 'PENDING' :
+                $status = 'pending';
+                break;
+
+            case 'PROCESSING' :
+                $status = 'processing';
+                break;
+
+            case 'SUCCESS' :
+                $status = 'complete';
+                break;
+
+            case 'CANCELED' :
+                $status = 'canceled';
+                break;
+        }
+
+        return $status;
     }
 
 
@@ -398,13 +436,16 @@ class EDD_Commissions_Payout_Method_PayPal extends EDD_Commissions_Payouts_Metho
                         'user_id'       => $user_id,
                         'payout_paid'   => $recipient->payout_item->amount->value,
                         'payout_status' => $recipient->transaction_status,
-                        'payout_fees'   => $recipient->payout_item_fee->value
+                        'payout_fees'   => $recipient->payout_item_fee->value,
+                        'receiver'      => $recipient->payout_item->receiver
                     ) );
                 }else {
-                    $payout->add_error( sprintf( __( 'Unable to find a user with the email: %s', 'edd-commissions-payouts' ), $recipient->payout_item->receiver ) );
+                    $payout->add_note( sprintf( __( 'Unable to find a user with the email: %s', 'edd-commissions-payouts' ), $recipient->payout_item->receiver ) );
                 }
             }
 
+            $payout->set_txn_id( $payout_response->batch_header->payout_batch_id );
+            $payout->set_status( $this->standardize_status( $payout_response->batch_header->batch_status ) );
             $payout->set_details( $response );
 
             return $response;

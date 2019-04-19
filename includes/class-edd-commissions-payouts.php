@@ -106,10 +106,14 @@ class EDD_Commissions_Payouts {
         require_once EDD_COMMISSIONS_PAYOUTS_PLUGIN_DIR . 'includes/class-edd-commissions-payouts-commissions.php';
         require_once EDD_COMMISSIONS_PAYOUTS_PLUGIN_DIR . 'includes/class-edd-commissions-payouts-payouts-table.php';
         require_once EDD_COMMISSIONS_PAYOUTS_PLUGIN_DIR . 'includes/class-edd-commissions-payouts-log-table.php';
-
         require_once EDD_COMMISSIONS_PAYOUTS_PLUGIN_DIR . 'includes/abstracts/class-edd-commissions-payouts-method.php';
         require_once EDD_COMMISSIONS_PAYOUTS_PLUGIN_DIR . 'includes/methods/class-edd-commissions-payout-method-paypal.php';
         require_once EDD_COMMISSIONS_PAYOUTS_PLUGIN_DIR . 'includes/methods/class-edd-commissions-payout-method-stripe.php';
+
+        if ( is_admin() ) {
+            require_once EDD_COMMISSIONS_PAYOUTS_PLUGIN_DIR . 'includes/admin/class-edd-commissions-payouts-payout-table.php';
+            require_once EDD_COMMISSIONS_PAYOUTS_PLUGIN_DIR . 'includes/admin/class-edd-commissions-payouts-payout-metaboxes.php';
+        }
     }
 
 
