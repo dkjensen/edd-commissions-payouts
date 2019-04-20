@@ -49,7 +49,7 @@ class EDD_Commissions_Payout {
      *
      * @var string
      */
-    protected $status;
+    protected $status = 'failed';
 
     /**
      * Total payout amount

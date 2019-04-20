@@ -61,7 +61,7 @@ class EDD_Commissions_Payouts_Payout_Table {
                 break;
 
             case 'txn_id' :
-                printf( '<a href="%s">%s</a>', get_edit_post_link( $payout->get_id() ), $payout->get_txn_id() );
+                printf( '<a href="%s">%s</a>', get_edit_post_link( $payout->get_id() ), ! empty( $payout->get_txn_id() ) ? $payout->get_txn_id() : '<em>' . __( 'Undefined', 'edd-commissions-payouts' ) . '</em>' );
                 break;
 
             case 'payout_date' :
